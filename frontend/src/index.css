@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Brand color shorthand used across components */
+@layer utilities {
+  .bg-brand { background-color: #FC4C02; }
+  .text-brand { color: #FC4C02; }
+  .border-brand { border-color: #FC4C02; }
+  .focus\:border-brand:focus { border-color: #FC4C02; }
+}
+
+/* Smooth scroll everywhere */
+html { scroll-behavior: smooth; }
+
+/* Remove tap highlight on mobile */
+* { -webkit-tap-highlight-color: transparent; }
+
+/* Leaflet fix: prevent controls overlapping bottom nav */
+.leaflet-bottom { bottom: 0 !important; }
