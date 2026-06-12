@@ -22,22 +22,27 @@ export default defineConfig({
         ],
       },
       manifest: {
-        name: "RunTrackPro",
-        short_name: "RunTrackPro",
+        name: "RunTrack Pro",
+        short_name: "RunTrack",
+        description: "Track every step of your journey",
         start_url: "/",
+        scope: "/",
         display: "standalone",
-        background_color: "#ffffff",
-        theme_color: "#FC4C02",
+        background_color: "#0a0a0a",
+        theme_color: "#D4AF37",
+        orientation: "portrait",
         icons: [
           {
-            src: "/icons/icon-192.png",
+            src: "/icons/icon-192.svg",
             sizes: "192x192",
-            type: "image/png",
+            type: "image/svg+xml",
+            purpose: "any maskable"
           },
           {
-            src: "/icons/icon-512.png",
+            src: "/icons/icon-512.svg",
             sizes: "512x512",
-            type: "image/png",
+            type: "image/svg+xml",
+            purpose: "any maskable"
           },
         ],
       },

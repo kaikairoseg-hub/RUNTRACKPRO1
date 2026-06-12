@@ -9,8 +9,11 @@ const TABS = [
   { key: "alltime", label: "All Time" },
 ];
 
-const MEDAL = ["🥇", "🥈", "🥉"];
-const MEDAL_BG = ["#F59E0B", "#9CA3AF", "#CD7F32"];
+const MEDAL = [
+  { icon: "bi-trophy-fill", color: "#F59E0B" },
+  { icon: "bi-trophy-fill", color: "#9CA3AF" },
+  { icon: "bi-trophy-fill", color: "#CD7F32" },
+];
 
 export default function Leaderboard() {
   const [period, setPeriod] = useState("weekly");
@@ -18,20 +21,20 @@ export default function Leaderboard() {
 
   return (
     <div>
-      <h2 className="text-xl font-extrabold text-gray-900 mb-4">Leaderboard</h2>
+      <h2 className="text-xl font-extrabold text-white mb-4">Leaderboard</h2>
 
-      {/* Tab switcher */}
-      <div className="flex bg-gray-100 rounded-xl p-1 mb-5 gap-1">
+      {/* Tab switcher - Glassmorphism */}
+      <div className="flex glass-light rounded-xl p-1 mb-5 gap-1">
         {TABS.map(({ key, label }) => (
           <button
             key={key}
             onClick={() => setPeriod(key)}
             className="flex-1 py-2 rounded-lg text-sm font-medium transition-all"
             style={{
-              background: period === key ? "white" : "transparent",
-              color: period === key ? "#111827" : "#6B7280",
+              background: period === key ? "rgba(212, 175, 55, 0.2)" : "transparent",
+              color: period === key ? "#D4AF37" : "#999999",
               fontWeight: period === key ? 600 : 400,
-              boxShadow: period === key ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+              border: period === key ? "1px solid rgba(212, 175, 55, 0.3)" : "none",
             }}
           >
             {label}
@@ -42,7 +45,7 @@ export default function Leaderboard() {
       {loading && (
         <div className="space-y-2">
           {[1,2,3,4,5].map((i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-xl h-16 animate-pulse" />
+            <div key={i} className="glass rounded-xl h-16 animate-pulse" />
           ))}
         </div>
       )}
@@ -52,45 +55,50 @@ export default function Leaderboard() {
           key={u.user_id}
           className="flex items-center gap-3 px-4 py-3 rounded-xl mb-2 border"
           style={{
-            background: u.is_me ? "#FFF0EA" : "white",
-            borderColor: u.is_me ? "#FC4C0240" : "#E5E7EB",
+            background: u.is_me ? "rgba(212, 175, 55, 0.1)" : "rgba(0, 0, 0, 0.7)",
+            backdropFilter: "blur(10px)",
+            borderColor: u.is_me ? "rgba(212, 175, 55, 0.3)" : "rgba(255, 255, 255, 0.1)",
           }}
         >
           {/* Rank */}
           <div
             className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold"
             style={{
-              background: u.rank <= 3 ? MEDAL_BG[u.rank - 1] : "#F3F4F6",
-              color: u.rank <= 3 ? "white" : "#6B7280",
+              background: u.rank <= 3 ? MEDAL[u.rank - 1].color + "30" : "rgba(255,255,255,0.05)",
+              color: u.rank <= 3 ? MEDAL[u.rank - 1].color : "#999999",
             }}
           >
-            {u.rank <= 3 ? MEDAL[u.rank - 1] : u.rank}
+            {u.rank <= 3 ? (
+              <i className={MEDAL[u.rank - 1].icon}></i>
+            ) : (
+              u.rank
+            )}
           </div>
 
           <Avatar
             initials={(u.full_name ?? "??").split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase()}
             size={38}
-            color={u.is_me ? "#FC4C02" : "#2196F3"}
+            color={u.is_me ? "#D4AF37" : "rgba(255,255,255,0.2)"}
             src={u.avatar_url}
           />
 
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-gray-900 truncate">
+            <p className="font-semibold text-sm text-white truncate">
               {u.full_name ?? "Unknown"}{u.is_me ? " (You)" : ""}
             </p>
-            <p className="text-xs text-gray-500">{u.activity_count} activities</p>
+            <p className="text-xs text-gray-400">{u.activity_count} activities</p>
           </div>
 
-          <p className="font-bold text-base" style={{ color: u.is_me ? "#FC4C02" : "#111827" }}>
+          <p className="font-bold text-base" style={{ color: u.is_me ? "#D4AF37" : "#ffffff" }}>
             {u.total_distance} km
           </p>
         </div>
       ))}
 
-      {/* Chart */}
+      {/* Chart - Glassmorphism */}
       {data.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-2xl p-5 mt-5">
-          <h3 className="text-sm font-bold text-gray-900 mb-4">Distance Comparison</h3>
+        <div className="glass rounded-2xl p-5 mt-5 border border-white/10">
+          <h3 className="text-sm font-bold text-white mb-4">Distance Comparison</h3>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart
               data={data.slice(0, 10).map((u) => ({
@@ -100,11 +108,20 @@ export default function Leaderboard() {
               layout="vertical"
               barSize={18}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 11, fill: "#6B7280" }} axisLine={false} tickLine={false} unit=" km" />
-              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} width={60} />
-              <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v) => [`${v} km`, "Distance"]} />
-              <Bar dataKey="distance" fill="#FC4C02" radius={[0, 6, 6, 0]} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: "#999999" }} axisLine={false} tickLine={false} unit=" km" />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#999999" }} axisLine={false} tickLine={false} width={60} />
+              <Tooltip 
+                contentStyle={{ 
+                  borderRadius: 8, 
+                  border: "1px solid rgba(255,255,255,0.1)", 
+                  fontSize: 12,
+                  background: "rgba(0,0,0,0.9)",
+                  color: "#ffffff"
+                }} 
+                formatter={(v) => [`${v} km`, "Distance"]} 
+              />
+              <Bar dataKey="distance" fill="#D4AF37" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

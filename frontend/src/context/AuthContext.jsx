@@ -11,15 +11,33 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     // Restore existing session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('❌ Session error:', error);
+      }
+      
+      if (session) {
+        console.log('✅ Session found:', {
+          user: session.user?.email,
+          expiresAt: new Date(session.expires_at * 1000).toISOString(),
+          now: new Date().toISOString()
+        });
+      }
+      
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.access_token) connectSocket(session.access_token);
+      
+      // Connect socket if we have a session
+      if (session?.access_token) {
+        connectSocket(session.access_token);
+      }
       setLoading(false);
     });
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔄 Auth state changed:', event, session?.user?.email);
+      
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.access_token) {
@@ -38,12 +56,29 @@ export function AuthProvider({ children }) {
   };
 
   const signUp = async (email, password, fullName) => {
-    const { error } = await supabase.auth.signUp({
+    console.log('🔐 Attempting signup...', { email, fullName });
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { 
+        data: { full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/auth/callback`
+      },
     });
-    if (error) throw error;
+    
+    if (error) {
+      console.error('❌ Signup error:', error);
+      throw error;
+    }
+    
+    console.log('✅ Signup successful:', data);
+    
+    // Check if email confirmation is required
+    if (data?.user && !data?.session) {
+      throw new Error('Please check your email to confirm your account');
+    }
+    
+    return data;
   };
 
   const signOut = async () => {

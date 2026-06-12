@@ -37,35 +37,43 @@ export default function Auth() {
   };
 
   const inputClass =
-    "w-full px-3.5 py-3 rounded-xl border border-gray-200 text-sm text-gray-900 bg-gray-50 outline-none focus:border-brand focus:bg-white transition-all mb-3";
+    "w-full px-3.5 py-3 rounded-xl border border-white/10 text-sm text-white bg-white/5 outline-none focus:border-white/30 focus:bg-white/10 transition-all mb-3 placeholder-gray-500";
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center p-5"
-      style={{ background: "linear-gradient(160deg, #FFF0EA 0%, white 50%)" }}
+      className="min-h-screen flex items-center justify-center p-5 bg-gradient-to-br from-[#0a0a0a] via-[#1a1a1a] to-[#0a0a0a] relative overflow-hidden"
     >
-      <div className="w-full max-w-sm">
+      {/* Animated wave background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="wave-animation"></div>
+        <div className="wave-animation" style={{ animationDelay: '-2s', opacity: 0.7 }}></div>
+        <div className="wave-animation" style={{ animationDelay: '-4s', opacity: 0.5 }}></div>
+      </div>
+
+      <div className="w-full max-w-sm relative z-10">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="text-5xl mb-2">🏃</div>
-          <h1 className="text-3xl font-black text-brand tracking-tight mb-1">RunTrack Pro</h1>
-          <p className="text-sm text-gray-500">Track every step of your journey</p>
+          <div className="mb-3 flex justify-center">
+            <img src="/logo.png" alt="RunTrackPro" className="h-16 w-auto" />
+          </div>
+          <h1 className="text-3xl font-black text-white tracking-tight mb-1">RunTrack Pro</h1>
+          <p className="text-sm text-gray-400">Track every step of your journey</p>
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl p-7 shadow-lg shadow-black/5">
+        {/* Card - Glassmorphism */}
+        <div className="glass rounded-2xl p-7 shadow-2xl shadow-black/50" style={{ background: 'rgba(0, 0, 0, 0.4)', backdropFilter: 'blur(20px)' }}>
           {/* Mode switcher */}
-          <div className="flex bg-gray-100 rounded-xl p-1 mb-6 gap-1">
+          <div className="flex glass-light rounded-xl p-1 mb-6 gap-1">
             {[["login", "Sign In"], ["register", "Sign Up"]].map(([key, label]) => (
               <button
                 key={key}
                 onClick={() => { setMode(key); setError(""); }}
                 className="flex-1 py-2.5 rounded-lg text-sm transition-all"
                 style={{
-                  background: mode === key ? "white" : "transparent",
-                  color: mode === key ? "#111827" : "#6B7280",
+                  background: mode === key ? "rgba(255, 255, 255, 0.1)" : "transparent",
+                  color: mode === key ? "#ffffff" : "#999999",
                   fontWeight: mode === key ? 600 : 400,
-                  boxShadow: mode === key ? "0 1px 4px rgba(0,0,0,0.1)" : "none",
+                  boxShadow: mode === key ? "0 2px 8px rgba(0,0,0,0.3)" : "none",
                 }}
               >
                 {label}
@@ -118,42 +126,25 @@ export default function Auth() {
             )}
 
             {error && (
-              <p className="text-xs text-red-500 bg-red-50 px-3 py-2 rounded-lg mb-3">{error}</p>
+              <p className="text-xs text-red-400 bg-red-500/10 px-3 py-2 rounded-lg mb-3 border border-red-500/20">{error}</p>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl bg-brand text-white text-sm font-bold disabled:opacity-60 transition-all mb-4"
+              className="w-full py-3.5 rounded-xl bg-gold text-black text-sm font-bold disabled:opacity-60 transition-all hover:bg-gold-dark"
             >
               {loading ? "…" : mode === "login" ? "Sign In" : "Create Account"}
             </button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-xs text-gray-400">or</span>
-            <div className="flex-1 h-px bg-gray-200" />
+          {/* Note about email authentication */}
+          <div className="mt-4 text-center">
+            <p className="text-xs text-gray-500">Use email and password to access your account</p>
           </div>
 
-          {/* Google OAuth placeholder */}
-          <button
-            type="button"
-            onClick={async () => {
-              try {
-                await signInWithGoogle();
-              } catch (err) {
-                setToastMsg(err.message || "Google sign-in failed. Please try again.");
-              }
-            }}
-            className="w-full py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 flex items-center justify-center gap-2.5 hover:bg-gray-50 transition-all"
-          >
-            <span className="text-lg font-bold text-blue-600">G</span> Continue with Google
-          </button>
-
           {mode === "login" && (
-            <p className="text-center mt-4 text-xs text-brand cursor-pointer hover:underline">
+            <p className="text-center mt-4 text-xs text-gray-400 cursor-pointer hover:text-white transition-colors">
               Forgot password?
             </p>
           )}

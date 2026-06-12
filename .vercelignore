@@ -1,0 +1,8 @@
+backend
+node_modules
+docs
+sql
+.git
+.env
+*.log
+.DS_Store

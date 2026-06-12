@@ -15,6 +15,30 @@ export default function AuthCallback() {
 
     async function exchange() {
       try {
+        // Check if there's an error in URL params first
+        const params = new URLSearchParams(window.location.search);
+        const errorParam = params.get('error');
+        const errorDescription = params.get('error_description');
+        
+        if (errorParam) {
+          const msg = errorDescription || errorParam || "Authentication failed";
+          setErrorMsg(msg);
+          setTimeout(() => {
+            window.location.replace("/");
+          }, 2000);
+          return;
+        }
+
+        // Check if URL has OAuth code
+        const hasCode = window.location.href.includes('code=');
+        if (!hasCode) {
+          setErrorMsg("No authentication code received");
+          setTimeout(() => {
+            window.location.replace("/");
+          }, 2000);
+          return;
+        }
+
         // exchangeCodeForSession reads the `code` param from the full URL automatically
         const { error } = await supabase.auth.exchangeCodeForSession(
           window.location.href
@@ -25,12 +49,9 @@ export default function AuthCallback() {
         if (error) {
           const msg = error.message || "Authentication failed";
           setErrorMsg(msg);
-          // Give the error state a brief moment to render before navigating
           setTimeout(() => {
-            window.location.replace(
-              `/auth?error=${encodeURIComponent(msg)}`
-            );
-          }, 1500);
+            window.location.replace("/");
+          }, 2000);
         } else {
           // Session established — go to the dashboard
           window.location.replace("/");
@@ -40,10 +61,8 @@ export default function AuthCallback() {
         const msg = err.message || "Unexpected error during sign-in";
         setErrorMsg(msg);
         setTimeout(() => {
-          window.location.replace(
-            `/auth?error=${encodeURIComponent(msg)}`
-          );
-        }, 1500);
+          window.location.replace("/");
+        }, 2000);
       }
     }
 
@@ -62,7 +81,7 @@ export default function AuthCallback() {
       {errorMsg ? (
         /* Error state — briefly shown before redirect */
         <div className="text-center">
-          <div className="text-4xl mb-3">⚠️</div>
+          <i className="bi-exclamation-triangle-fill text-4xl mb-3 text-amber-500"></i>
           <p className="text-sm text-gray-600 font-medium">
             Sign-in failed. Redirecting…
           </p>

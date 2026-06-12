@@ -30,6 +30,21 @@ async function request(path, options = {}) {
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ error: res.statusText }));
+    
+    // Log 401 errors for debugging
+    if (res.status === 401) {
+      console.warn('⚠️ 401 Unauthorized:', path, body);
+    }
+    
+    // Disabled automatic logout to prevent redirect loop
+    // Will be re-enabled once clock sync is fixed
+    // if (res.status === 401 && body.error?.includes('token')) {
+    //   localStorage.clear();
+    //   sessionStorage.clear();
+    //   window.location.href = '/';
+    //   return;
+    // }
+    
     throw new Error(body.error ?? `HTTP ${res.status}`);
   }
 

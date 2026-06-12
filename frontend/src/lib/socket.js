@@ -11,8 +11,17 @@ let socket = null;
 export function connectSocket(token) {
   if (socket?.connected) return socket;
 
+  // Extract user ID from JWT token
+  let userId = null;
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    userId = payload.sub;
+  } catch (err) {
+    console.error('[socket] Failed to parse token:', err);
+  }
+
   socket = io(BACKEND, {
-    auth: { token },
+    auth: { token, userId },
     transports: ["websocket"],
     autoConnect: true,
   });

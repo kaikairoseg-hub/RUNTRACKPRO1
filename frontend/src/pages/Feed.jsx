@@ -27,14 +27,14 @@ export default function Feed() {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-extrabold text-gray-900">Activity Feed</h2>
+        <h2 className="text-xl font-extrabold text-white">Activity Feed</h2>
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="text-sm border border-gray-200 rounded-lg px-2.5 py-1.5 text-gray-700 bg-white outline-none"
+          className="text-sm glass-light border border-white/10 rounded-lg px-2.5 py-1.5 text-white bg-transparent outline-none focus:border-gold"
         >
           {FILTERS.map((f) => (
-            <option key={f.value} value={f.value}>{f.label}</option>
+            <option key={f.value} value={f.value} className="bg-black text-white">{f.label}</option>
           ))}
         </select>
       </div>
@@ -43,14 +43,14 @@ export default function Feed() {
       {isInitialLoad && (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-2xl h-40 animate-pulse" />
+            <div key={i} className="glass rounded-2xl h-40 animate-pulse" />
           ))}
         </div>
       )}
 
       {/* Error on first load (no activities loaded yet) */}
       {error && activities.length === 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-sm text-red-600">
+        <div className="glass-light border border-red-400/30 rounded-xl p-4 text-sm text-red-400">
           Could not load feed: {error}
         </div>
       )}
@@ -58,8 +58,8 @@ export default function Feed() {
       {/* Empty state */}
       {!loading && !error && activities.length === 0 && (
         <div className="text-center py-16 text-gray-400">
-          <p className="text-4xl mb-3">🏃</p>
-          <p className="font-medium">No activities yet</p>
+          <i className="bi bi-person-running text-4xl mb-3 block"></i>
+          <p className="font-medium text-white">No activities yet</p>
           <p className="text-sm">Start tracking to see runs here</p>
         </div>
       )}
@@ -79,9 +79,9 @@ export default function Feed() {
         <div className="mt-4 flex flex-col items-center gap-3">
           {/* Subsequent page loading spinner */}
           {loading && (
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-gray-400">
               <svg
-                className="animate-spin h-4 w-4 text-indigo-500"
+                className="animate-spin h-4 w-4 text-gold"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -109,7 +109,7 @@ export default function Feed() {
           {hasMore && !loading && !error && (
             <button
               onClick={loadMore}
-              className="px-5 py-2 rounded-xl bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 active:scale-95 transition-all"
+              className="px-5 py-2 rounded-xl bg-gold text-black text-sm font-semibold hover:bg-gold-dark active:scale-95 transition-all"
             >
               Load more
             </button>
@@ -123,10 +123,10 @@ export default function Feed() {
           {/* Retry button on error when activities are already present */}
           {error && activities.length > 0 && (
             <div className="flex flex-col items-center gap-2">
-              <p className="text-sm text-red-500">Failed to load more activities.</p>
+              <p className="text-sm text-red-400">Failed to load more activities.</p>
               <button
                 onClick={retry}
-                className="px-4 py-1.5 rounded-lg border border-red-300 text-red-600 text-sm font-medium hover:bg-red-50 transition-colors"
+                className="px-4 py-1.5 rounded-lg glass-light border border-red-400/30 text-red-400 text-sm font-medium hover:bg-red-500/10 transition-colors"
               >
                 Retry
               </button>

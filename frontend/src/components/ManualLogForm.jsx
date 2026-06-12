@@ -91,8 +91,8 @@ export function ManualLogForm() {
       <form onSubmit={handleSubmit} noValidate className="space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-            Title <span className="normal-case text-gray-400 font-normal">(optional)</span>
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
+            Title <span className="normal-case text-gray-500 font-normal">(optional)</span>
           </label>
           <input
             type="text"
@@ -100,13 +100,13 @@ export function ManualLogForm() {
             value={fields.title}
             onChange={handleChange}
             placeholder={`${fields.type} ${new Date().toLocaleDateString()}`}
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#FC4C02] transition-colors"
+            className="w-full glass-light border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors text-white placeholder-gray-500"
           />
         </div>
 
         {/* Activity Type */}
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-2">
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">
             Activity Type
           </label>
           <div className="flex gap-2 flex-wrap">
@@ -117,11 +117,11 @@ export function ManualLogForm() {
                 onClick={() => {
                   setFields((prev) => ({ ...prev, type: t }));
                 }}
-                className="px-4 py-1.5 rounded-full text-sm font-medium border transition-all"
+                className="px-4 py-1.5 rounded-full text-sm font-medium transition-all"
                 style={{
-                  borderColor: fields.type === t ? "#FC4C02" : "#E5E7EB",
-                  background: fields.type === t ? "#FC4C02" : "white",
-                  color: fields.type === t ? "white" : "#6B7280",
+                  border: fields.type === t ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+                  background: fields.type === t ? "rgba(212, 175, 55, 0.2)" : "rgba(255,255,255,0.05)",
+                  color: fields.type === t ? "#D4AF37" : "#999999",
                 }}
               >
                 {t}
@@ -132,7 +132,7 @@ export function ManualLogForm() {
 
         {/* Distance */}
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
             Distance (km)
           </label>
           <input
@@ -144,18 +144,18 @@ export function ManualLogForm() {
             max="1000"
             step="0.01"
             placeholder="0.00"
-            className={`w-full border rounded-xl px-4 py-3 text-sm outline-none focus:border-[#FC4C02] transition-colors ${
-              errors.distance ? "border-red-400 bg-red-50" : "border-gray-200"
+            className={`w-full glass-light border rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors text-white placeholder-gray-500 ${
+              errors.distance ? "border-red-400/50 bg-red-500/10" : "border-white/10"
             }`}
           />
           {errors.distance && (
-            <p className="mt-1 text-xs text-red-500">{errors.distance}</p>
+            <p className="mt-1 text-xs text-red-400">{errors.distance}</p>
           )}
         </div>
 
         {/* Duration */}
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
             Duration
           </label>
           <div className="flex gap-3">
@@ -170,11 +170,11 @@ export function ManualLogForm() {
                   max="99"
                   step="1"
                   placeholder="0"
-                  className={`w-full border rounded-xl px-4 py-3 text-sm outline-none focus:border-[#FC4C02] transition-colors ${
-                    errors.duration ? "border-red-400 bg-red-50" : "border-gray-200"
+                  className={`w-full glass-light border rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors text-white placeholder-gray-500 ${
+                    errors.duration ? "border-red-400/50 bg-red-500/10" : "border-white/10"
                   }`}
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
                   hrs
                 </span>
               </div>
@@ -190,25 +190,25 @@ export function ManualLogForm() {
                   max="59"
                   step="1"
                   placeholder="0"
-                  className={`w-full border rounded-xl px-4 py-3 text-sm outline-none focus:border-[#FC4C02] transition-colors ${
-                    errors.duration ? "border-red-400 bg-red-50" : "border-gray-200"
+                  className={`w-full glass-light border rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors text-white placeholder-gray-500 ${
+                    errors.duration ? "border-red-400/50 bg-red-500/10" : "border-white/10"
                   }`}
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-500 pointer-events-none">
                   min
                 </span>
               </div>
             </div>
           </div>
           {errors.duration && (
-            <p className="mt-1 text-xs text-red-500">{errors.duration}</p>
+            <p className="mt-1 text-xs text-red-400">{errors.duration}</p>
           )}
         </div>
 
         {/* Calories (optional) */}
         <div>
-          <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wide mb-1">
-            Calories <span className="normal-case text-gray-400 font-normal">(optional)</span>
+          <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1">
+            Calories <span className="normal-case text-gray-500 font-normal">(optional)</span>
           </label>
           <input
             type="number"
@@ -218,7 +218,7 @@ export function ManualLogForm() {
             min="0"
             step="1"
             placeholder="—"
-            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-[#FC4C02] transition-colors"
+            className="w-full glass-light border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-gold transition-colors text-white placeholder-gray-500"
           />
         </div>
 
@@ -226,8 +226,7 @@ export function ManualLogForm() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full py-4 rounded-xl text-white text-base font-bold transition-all disabled:opacity-60"
-          style={{ background: "#FC4C02" }}
+          className="w-full py-4 rounded-xl text-black text-base font-bold transition-all disabled:opacity-60 bg-gold hover:bg-gold-dark"
         >
           {submitting ? "Saving…" : "Log Activity"}
         </button>

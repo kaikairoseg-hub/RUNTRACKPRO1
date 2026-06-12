@@ -10,7 +10,12 @@ const TYPE_COLORS = {
   Hiking: "#10B981",
 };
 
-const TYPE_ICONS = { Running: "🏃", Cycling: "🚴", Walking: "🚶", Hiking: "🥾" };
+const TYPE_ICONS = { 
+  Running: "bi-person-running", 
+  Cycling: "bi-bicycle", 
+  Walking: "bi-person-walking", 
+  Hiking: "bi-backpack" 
+};
 
 function formatDuration(seconds) {
   if (!seconds) return "—";
@@ -31,11 +36,18 @@ function calcPace(distanceKm, durationSeconds) {
 }
 
 const WEATHER_EMOJIS = {
-  Clear: "☀️", Clouds: "☁️", Rain: "🌧️", Drizzle: "🌦️",
-  Thunderstorm: "⛈️", Snow: "❄️", Mist: "🌫️", Fog: "🌫️", Haze: "🌫️",
+  Clear: "bi-sun-fill", 
+  Clouds: "bi-cloud-fill", 
+  Rain: "bi-cloud-rain-fill", 
+  Drizzle: "bi-cloud-drizzle-fill",
+  Thunderstorm: "bi-cloud-lightning-fill", 
+  Snow: "bi-cloud-snow-fill", 
+  Mist: "bi-cloud-fog-fill", 
+  Fog: "bi-cloud-fog-fill", 
+  Haze: "bi-cloud-haze-fill",
 };
-function getWeatherEmoji(condition) {
-  return WEATHER_EMOJIS[condition] ?? "🌡️";
+function getWeatherIcon(condition) {
+  return WEATHER_EMOJIS[condition] ?? "bi-thermometer-half";
 }
 
 export function ActivityCard({ activity, onLike, onComment }) {
@@ -116,12 +128,14 @@ export function ActivityCard({ activity, onLike, onComment }) {
 
         {/* Title */}
         <div className="flex items-center flex-wrap gap-2 mb-3">
-          <p className="font-bold text-base text-gray-900">
-            {TYPE_ICONS[activity.type]} {activity.title}
+          <p className="font-bold text-base text-gray-900 flex items-center gap-2">
+            <i className={`${TYPE_ICONS[activity.type]} text-lg`}></i>
+            {activity.title}
           </p>
           {activity.weather_condition && activity.temperature_celsius != null && (
             <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
-              {getWeatherEmoji(activity.weather_condition)} {Math.round(activity.temperature_celsius)}°C
+              <i className={`${getWeatherIcon(activity.weather_condition)}`}></i> 
+              {Math.round(activity.temperature_celsius)}°C
             </span>
           )}
         </div>
@@ -153,18 +167,21 @@ export function ActivityCard({ activity, onLike, onComment }) {
             color: activity.liked ? "#FC4C02" : "#6B7280",
           }}
         >
-          {activity.liked ? "❤️" : "🤍"} {activity.like_count ?? 0}
+          <i className={`${activity.liked ? "bi-heart-fill" : "bi-heart"}`}></i>
+          {activity.like_count ?? 0}
         </button>
 
         <button
           onClick={() => setShowComments((v) => !v)}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-500 transition-all hover:bg-gray-50"
         >
-          💬 {activity.comment_count ?? 0}
+          <i className="bi-chat"></i>
+          {activity.comment_count ?? 0}
         </button>
 
         <button className="flex items-center gap-1.5 ml-auto px-3.5 py-1.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
-          ↗ Share
+          <i className="bi-share"></i>
+          Share
         </button>
       </div>
 

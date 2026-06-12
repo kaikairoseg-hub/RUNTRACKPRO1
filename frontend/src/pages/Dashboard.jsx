@@ -46,90 +46,164 @@ export default function Dashboard() {
   return (
     <div>
       <div className="mb-5">
-        <h2 className="text-2xl font-extrabold text-gray-900 mb-1">
+        <h2 className="text-2xl font-extrabold text-white mb-1">
           {greeting}, {firstName} 👋
         </h2>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-gray-400">
           {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
         </p>
       </div>
 
-      {/* Stat cards */}
-      <div className="flex gap-2.5 mb-5 flex-wrap">
-        <StatCard label="Total Distance" value={`${stats.totalDistance ?? 0} km`} sub="All time" icon="📏" color="#FC4C02" />
-        <StatCard label="Activities" value={stats.totalActivities ?? 0} sub="All time" icon="⚡" color="#2196F3" />
-        <StatCard label="Calories" value={(stats.totalCalories ?? 0).toLocaleString()} sub="All time" icon="🔥" color="#EF4444" />
-        <StatCard label="Streak" value={`${profile?.current_streak ?? 0} days`} sub="Current streak" icon="🎯" color="#10B981" />
-      </div>
-
-      {/* Weekly chart */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-4">
-        <h3 className="text-sm font-bold text-gray-900 mb-4">Weekly Distance</h3>
-        <ResponsiveContainer width="100%" height={180}>
-          <BarChart data={weeklyData} barSize={28}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
-            <XAxis dataKey="day" tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: "#6B7280" }} axisLine={false} tickLine={false} unit=" km" width={45} />
-            <Tooltip
-              contentStyle={{ borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }}
-              formatter={(v) => [`${v} km`, "Distance"]}
-            />
-            <Bar dataKey="distance_km" fill="#FC4C02" radius={[6, 6, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Monthly chart */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-5 mb-4">
-        <h3 className="text-sm font-bold text-gray-900 mb-4">Monthly Progress</h3>
-        <ResponsiveContainer width="100%" height={160}>
-          <AreaChart data={monthlyData}>
-            <defs>
-              <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#FC4C02" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="#FC4C02" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
-            <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#6B7280" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 11, fill: "#6B7280" }} axisLine={false} tickLine={false} unit=" km" width={50} />
-            <Tooltip contentStyle={{ borderRadius: 8, border: "1px solid #E5E7EB", fontSize: 12 }} formatter={(v) => [`${v} km`, "Distance"]} />
-            <Area type="monotone" dataKey="distance_km" stroke="#FC4C02" strokeWidth={2.5} fill="url(#areaGrad)" dot={{ r: 4, fill: "#FC4C02" }} />
-          </AreaChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Personal records */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-5">
-        <h3 className="text-sm font-bold text-gray-900 mb-4">Personal Records</h3>
-        {[
-          { label: "Fastest 5K", value: "—", icon: "⚡", color: "#FC4C02" },
-          { label: "Longest Run", value: `${stats.totalDistance ?? 0} km`, icon: "📏", color: "#2196F3" },
-          { label: "Best Pace", value: "—", icon: "🏃", color: "#10B981" },
-          { label: "Max Elevation", value: `${analytics?.max_elevation_gain_m ?? 0} m`, icon: "⛰️", color: "#7C3AED" },
-        ].map((r) => (
-          <div
-            key={r.label}
-            className="flex items-center justify-between py-2.5 border-b border-gray-100 last:border-0"
-          >
-            <div className="flex items-center gap-2.5">
-              <div
-                className="w-9 h-9 rounded-lg flex items-center justify-center text-base"
-                style={{ background: r.color + "18" }}
-              >
-                {r.icon}
-              </div>
-              <span className="text-sm text-gray-700">{r.label}</span>
+      {/* Visual Cards Grid - 2x2 Layout */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        
+        {/* Weekly Distance Card with Chart */}
+        <div className="glass rounded-3xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border border-gold/20 hover:border-gold/40 aspect-square flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Weekly</p>
+              <p className="text-sm font-bold text-white">Distance</p>
             </div>
-            <span className="text-sm font-bold" style={{ color: r.color }}>{r.value}</span>
+            <div className="w-10 h-10 rounded-xl glass-gold flex items-center justify-center">
+              <i className="bi bi-bar-chart-fill text-lg text-gold"></i>
+            </div>
           </div>
-        ))}
+          <div className="flex-1 flex items-end">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={weeklyData}>
+                <defs>
+                  <linearGradient id="weeklyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="distance_km" stroke="#10b981" strokeWidth={2} fill="url(#weeklyGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Last 7 days</p>
+        </div>
+
+        {/* Monthly Progress Card with Chart */}
+        <div className="glass rounded-3xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border border-gold/20 hover:border-gold/40 aspect-square flex flex-col">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Monthly</p>
+              <p className="text-sm font-bold text-white">Progress</p>
+            </div>
+            <div className="w-10 h-10 rounded-xl glass-gold flex items-center justify-center">
+              <i className="bi bi-graph-up-arrow text-lg text-gold"></i>
+            </div>
+          </div>
+          <div className="flex-1 flex items-end">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={monthlyData}>
+                <defs>
+                  <linearGradient id="monthlyGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area type="monotone" dataKey="distance_km" stroke="#3b82f6" strokeWidth={2} fill="url(#monthlyGrad)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+          <p className="text-xs text-gray-500 mt-1">Last 6 months</p>
+        </div>
+
+        {/* Calories Card */}
+        <div className="glass rounded-3xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border border-gold/20 hover:border-gold/40 aspect-square flex flex-col justify-between">
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Total</p>
+            <p className="text-sm font-bold text-white">Calories</p>
+          </div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-orange-500/20 to-red-600/40 flex items-center justify-center">
+                <div className="text-center">
+                  <p className="text-2xl font-black text-orange-400">{(stats.totalCalories ?? 0).toLocaleString()}</p>
+                  <p className="text-[9px] text-gray-400 uppercase">kcal</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="w-full bg-gray-700/50 rounded-full h-1.5">
+            <div className="bg-gradient-to-r from-orange-500 to-red-600 h-1.5 rounded-full" style={{ width: `${Math.min((stats.totalCalories ?? 0) / 100, 100)}%` }}></div>
+          </div>
+        </div>
+
+        {/* Streak Card */}
+        <div className="glass rounded-3xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer border border-gold/20 hover:border-gold/40 aspect-square flex flex-col justify-between bg-gradient-to-br from-gold/5 to-gold/10">
+          <div>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Current</p>
+            <p className="text-sm font-bold text-white">Streak</p>
+          </div>
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gold/30 to-gold/50 flex items-center justify-center mb-3">
+                <div>
+                  <i className="bi bi-fire text-4xl text-gold mb-1"></i>
+                  <p className="text-2xl font-black text-gold">{profile?.current_streak ?? 0}</p>
+                </div>
+              </div>
+              <p className="text-[10px] text-gray-400 uppercase tracking-wide">Days Active</p>
+            </div>
+          </div>
+          <div className="w-full bg-gray-700/50 rounded-full h-1.5">
+            <div className="bg-gradient-to-r from-gold/70 to-gold h-1.5 rounded-full" style={{ width: `${Math.min((profile?.current_streak ?? 0) * 10, 100)}%` }}></div>
+          </div>
+        </div>
       </div>
 
-      {/* AI Coach */}
-      <div className="bg-white border border-gray-200 rounded-2xl p-5 mt-4">
-        <h3 className="text-sm font-bold text-gray-900 mb-3">🤖 AI Coach</h3>
-        <p className="text-sm text-gray-600">
+      {/* Stats Summary Bar */}
+      <div className="glass rounded-2xl p-4 mb-4 border border-gold/20">
+        <div className="grid grid-cols-3 gap-3 divide-x divide-white/10">
+          <div className="text-center">
+            <p className="text-xs text-gray-400 mb-1">Distance</p>
+            <p className="text-lg font-bold text-white">{stats.totalDistance ?? 0} <span className="text-xs text-gray-500">km</span></p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-400 mb-1">Calories</p>
+            <p className="text-lg font-bold text-white">{(stats.totalCalories ?? 0).toLocaleString()} <span className="text-xs text-gray-500">kcal</span></p>
+          </div>
+          <div className="text-center">
+            <p className="text-xs text-gray-400 mb-1">Streak</p>
+            <p className="text-lg font-bold text-gold">{profile?.current_streak ?? 0} <span className="text-xs text-gray-500">days</span></p>
+          </div>
+        </div>
+      </div>
+
+      {/* Personal records - Compact */}
+      <div className="glass rounded-2xl p-4 mb-4 transition-all duration-300 hover:border-gold/30 border border-white/10">
+        <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+          <i className="bi bi-trophy-fill text-gold"></i>
+          Personal Records
+        </h3>
+        <div className="grid grid-cols-2 gap-2">
+          {[
+            { label: "Fastest 5K", value: "—", icon: "bi bi-lightning-charge-fill", color: "text-yellow-400" },
+            { label: "Longest", value: `${stats.totalDistance ?? 0} km`, icon: "bi bi-rulers", color: "text-blue-400" },
+            { label: "Best Pace", value: "—", icon: "bi bi-speedometer2", color: "text-green-400" },
+            { label: "Max Climb", value: `${analytics?.max_elevation_gain_m ?? 0} m`, icon: "bi bi-graph-up-arrow", color: "text-purple-400" },
+          ].map((r) => (
+            <div key={r.label} className="glass-light rounded-xl p-2.5 flex items-center gap-2">
+              <i className={`${r.icon} ${r.color} text-base`}></i>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-gray-400 truncate">{r.label}</p>
+                <p className="text-xs font-bold text-white truncate">{r.value}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* AI Coach - Compact */}
+      <div className="glass rounded-2xl p-4 transition-all duration-300 hover:border-gold/30 border border-white/10">
+        <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
+          <i className="bi bi-robot text-gold"></i>
+          AI Coach
+        </h3>
+        <p className="text-xs text-gray-300 leading-relaxed">
           {coachAdvice ?? "Loading your personalised advice…"}
         </p>
       </div>

@@ -24,7 +24,7 @@ const startIcon = new L.DivIcon({
 });
 
 const currentIcon = new L.DivIcon({
-  html: '<div style="background:#FC4C02;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px rgba(252,76,2,0.6)"></div>',
+  html: '<div style="background:#D4AF37;width:16px;height:16px;border-radius:50%;border:3px solid white;box-shadow:0 0 6px rgba(212,175,55,0.6)"></div>',
   className: "",
   iconAnchor: [8, 8],
 });
@@ -83,18 +83,18 @@ export default function Track() {
 
   return (
     <div>
-      <h2 className="text-xl font-extrabold text-gray-900 mb-4">Track Activity</h2>
+      <h2 className="text-xl font-extrabold text-white mb-4">Track Activity</h2>
 
-      {/* Tab switcher */}
-      <div className="flex gap-1 bg-gray-100 rounded-xl p-1 mb-4">
+      {/* Tab switcher - Glassmorphism */}
+      <div className="flex gap-1 glass-light rounded-xl p-1 mb-4">
         {TABS.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${
               activeTab === tab
-                ? "bg-white text-gray-900 shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
+                ? "glass-gold text-gold border border-gold/30"
+                : "text-gray-400 hover:text-white"
             }`}
           >
             {tab}
@@ -112,11 +112,11 @@ export default function Track() {
             key={t}
             onClick={() => !tracking && setActivityType(t)}
             disabled={tracking}
-            className="px-4 py-1.5 rounded-full text-sm font-medium border transition-all disabled:opacity-60"
+            className="px-4 py-1.5 rounded-full text-sm font-medium transition-all disabled:opacity-60"
             style={{
-              borderColor: activityType === t ? "#FC4C02" : "#E5E7EB",
-              background: activityType === t ? "#FC4C02" : "white",
-              color: activityType === t ? "white" : "#6B7280",
+              border: activityType === t ? "1px solid #D4AF37" : "1px solid rgba(255,255,255,0.1)",
+              background: activityType === t ? "rgba(212, 175, 55, 0.2)" : "rgba(255,255,255,0.05)",
+              color: activityType === t ? "#D4AF37" : "#999999",
             }}
           >
             {t}
@@ -125,7 +125,7 @@ export default function Track() {
       </div>
 
       {/* Map */}
-      <div className="rounded-2xl overflow-hidden mb-4 border border-gray-200" style={{ height: 280 }}>
+      <div className="rounded-2xl overflow-hidden mb-4 border border-white/10" style={{ height: 280 }}>
         <MapContainer
           center={currentPoint ?? mapCenter}
           zoom={15}
@@ -137,7 +137,7 @@ export default function Track() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           />
           {points.length >= 2 && (
-            <Polyline positions={points} color="#FC4C02" weight={4} />
+            <Polyline positions={points} color="#D4AF37" weight={4} />
           )}
           {points.length > 0 && (
             <Marker position={points[0]} icon={startIcon} />
@@ -154,63 +154,79 @@ export default function Track() {
       {/* Live badge */}
       <div className="flex items-center gap-2 mb-4">
         {tracking && (
-          <span className="flex items-center gap-1.5 bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-full">
-            <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse inline-block" />
+          <span className="flex items-center gap-1.5 glass-gold text-gold text-xs font-bold px-3 py-1 rounded-full border border-gold/30">
+            <span className="w-2 h-2 rounded-full bg-gold animate-pulse inline-block" />
             LIVE
           </span>
         )}
         {error && (
-          <span className="text-xs text-red-500 bg-red-50 px-3 py-1 rounded-full">{error}</span>
+          <span className="text-xs text-red-400 glass-light px-3 py-1 rounded-full flex items-center gap-1 border border-red-400/30">
+            <i className="bi bi-exclamation-triangle-fill"></i>
+            {error}
+          </span>
         )}
         {savedMsg && (
-          <span className="text-xs text-green-700 bg-green-50 px-3 py-1 rounded-full">{savedMsg}</span>
+          <span className="text-xs text-green-400 glass-light px-3 py-1 rounded-full flex items-center gap-1 border border-green-400/30">
+            <i className="bi bi-check-circle-fill"></i>
+            {savedMsg}
+          </span>
         )}
       </div>
 
-      {/* Stats */}
+      {/* Stats - Glassmorphism */}
       <div className="grid grid-cols-3 gap-2.5 mb-4">
         {[
           { label: "Distance", value: `${distance.toFixed(2)} km` },
           { label: "Duration", value: formatTime(elapsed) },
           { label: metric.label, value: metric.value },
         ].map((s) => (
-          <div key={s.label} className="bg-gray-100 rounded-xl p-3 text-center">
-            <p className="text-[10px] text-gray-500 uppercase tracking-wide mb-1">{s.label}</p>
-            <p className="text-xl font-bold text-gray-900">{s.value}</p>
+          <div key={s.label} className="glass rounded-xl p-3 text-center border border-white/10">
+            <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-1">{s.label}</p>
+            <p className="text-xl font-bold text-white">{s.value}</p>
           </div>
         ))}
       </div>
 
-      {/* CTA */}
+      {/* CTA - Gold Button with Interactive */}
       <button
         onClick={tracking ? handleStop : () => start()}
-        className="w-full py-4 rounded-xl text-white text-base font-bold flex items-center justify-center gap-2 transition-all"
-        style={{ background: tracking ? "#EF4444" : "#FC4C02" }}
+        className="w-full py-4 rounded-xl text-black text-base font-bold flex items-center justify-center gap-2 transition-all active:scale-95 hover:shadow-xl hover:shadow-gold/20"
+        style={{ background: tracking ? "#EF4444" : "#D4AF37" }}
       >
-        {tracking ? "⏹ Stop Activity" : "▶ Start Activity"}
+        {tracking ? (
+          <>
+            <i className="bi bi-stop-circle-fill text-xl"></i>
+            Stop Activity
+          </>
+        ) : (
+          <>
+            <i className="bi bi-play-circle-fill text-xl"></i>
+            Start Activity
+          </>
+        )}
       </button>
 
-      {/* Save modal */}
+      {/* Save modal - Glassmorphism */}
       {showSaveModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-end justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm">
-            <h3 className="font-bold text-lg text-gray-900 mb-4">Save Activity</h3>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center z-50 p-4">
+          <div className="glass-dark rounded-2xl p-6 w-full max-w-sm border border-white/10">
+            <h3 className="font-bold text-lg text-white mb-4">Save Activity</h3>
             <input
               value={saveTitle}
               onChange={(e) => setSaveTitle(e.target.value)}
               placeholder={`${activityType} ${new Date().toLocaleDateString()}`}
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-brand mb-4"
+              className="w-full glass-light border border-white/10 rounded-xl px-4 py-3 text-sm outline-none focus:border-gold text-white placeholder-gray-500 mb-4"
             />
             <div className="flex gap-3">
               <button
                 onClick={() => setShowSaveModal(false)}
-                className="flex-1 py-3 rounded-xl border border-gray-200 text-gray-600 text-sm font-semibold"
+                className="flex-1 py-3 rounded-xl glass-light border border-white/10 text-gray-300 text-sm font-semibold hover:bg-white/10 transition-all"
               >
                 Discard
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-3 rounded-xl bg-brand text-white text-sm font-semibold"
+                className="flex-1 py-3 rounded-xl bg-gold text-black text-sm font-semibold hover:bg-gold-dark transition-all"
               >
                 Save
               </button>
