@@ -50,8 +50,16 @@ export default function Feed() {
 
       {/* Error on first load (no activities loaded yet) */}
       {error && activities.length === 0 && (
-        <div className="glass-light border border-red-400/30 rounded-xl p-4 text-sm text-red-400">
-          Could not load feed: {error}
+        <div className="glass-light border border-yellow-400/30 rounded-xl p-5 text-center">
+          <i className="bi bi-exclamation-triangle text-3xl text-yellow-400 mb-3 block"></i>
+          <p className="text-sm text-yellow-400 font-semibold mb-2">Backend Unavailable</p>
+          <p className="text-xs text-gray-400 mb-3">
+            {error}
+          </p>
+          <p className="text-xs text-gray-500">
+            The activity feed requires the backend server to be running. 
+            For now, you can still track activities using the Track page.
+          </p>
         </div>
       )}
 

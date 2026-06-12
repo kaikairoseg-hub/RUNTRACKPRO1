@@ -26,30 +26,48 @@ async function request(path, options = {}) {
     ...(options.headers ?? {}),
   };
 
-  const res = await fetch(`${BASE}${path}`, { ...options, headers });
+  try {
+    const res = await fetch(`${BASE}${path}`, { ...options, headers });
 
-  if (!res.ok) {
-    const body = await res.json().catch(() => ({ error: res.statusText }));
+    // Handle non-JSON responses (HTML error pages)
+    const contentType = res.headers.get("content-type");
+    const isJson = contentType && contentType.includes("application/json");
+
+    if (!res.ok) {
+      let errorMessage;
+      
+      if (isJson) {
+        const body = await res.json().catch(() => ({ error: res.statusText }));
+        errorMessage = body.error ?? `HTTP ${res.status}`;
+        
+        // Log 401 errors for debugging
+        if (res.status === 401) {
+          console.warn('⚠️ 401 Unauthorized:', path, body);
+        }
+      } else {
+        // Got HTML instead of JSON (probably backend is down)
+        errorMessage = `Backend unavailable (${res.status})`;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    if (res.status === 204) return null;
     
-    // Log 401 errors for debugging
-    if (res.status === 401) {
-      console.warn('⚠️ 401 Unauthorized:', path, body);
+    // Ensure we're actually getting JSON
+    if (!isJson) {
+      throw new Error("Backend returned invalid response (expected JSON)");
     }
     
-    // Disabled automatic logout to prevent redirect loop
-    // Will be re-enabled once clock sync is fixed
-    // if (res.status === 401 && body.error?.includes('token')) {
-    //   localStorage.clear();
-    //   sessionStorage.clear();
-    //   window.location.href = '/';
-    //   return;
-    // }
+    return res.json();
     
-    throw new Error(body.error ?? `HTTP ${res.status}`);
+  } catch (err) {
+    // Handle network errors
+    if (err.name === 'TypeError' && err.message.includes('fetch')) {
+      throw new Error('Backend unavailable - please check connection');
+    }
+    throw err;
   }
-
-  if (res.status === 204) return null;
-  return res.json();
 }
 
 export const api = {

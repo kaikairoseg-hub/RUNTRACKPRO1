@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: runtrackpro-backend
+    runtime: node
+    region: oregon
+    plan: free
+    buildCommand: cd backend && npm install
+    startCommand: cd backend && npm start
+    envVars:
+      - key: PORT
+        value: 4000
+      - key: CLIENT_URL
+        value: https://runtrackpro-frontend.vercel.app
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
