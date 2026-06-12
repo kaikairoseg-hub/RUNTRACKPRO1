@@ -1,0 +1,20 @@
+{
+  "install": "cd backend && npm install",
+  "start": "cd backend && npm start",
+  "watch": {
+    "ignore": [
+      "frontend/",
+      ".git"
+    ],
+    "install": {
+      "include": [
+        "backend/package.json"
+      ]
+    },
+    "restart": {
+      "include": [
+        "backend/**/*.js"
+      ]
+    }
+  }
+}
