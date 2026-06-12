@@ -206,27 +206,33 @@ Open `http://localhost:5173` in your browser!
 
 ## 🌐 Deployment
 
-### Option 1: Vercel (Recommended - Free)
+### Option 1: Railway.app (Recommended - Free, No Card Required)
 
 **Frontend as PWA:**
-1. Push code to GitHub
-2. Import project to Vercel
-3. Configure build settings (auto-detected)
-4. Add environment variables
-5. Deploy!
+1. Push code to GitHub ✅ (Done!)
+2. Deploy to Vercel ✅ (Done!)
 
-**Result:** `https://your-app.vercel.app` - Installable PWA
+**Backend API:**
+1. Go to [Railway.app](https://railway.app)
+2. Sign in with GitHub (no credit card needed)
+3. Deploy from GitHub repository
+4. Set root directory: `backend`
+5. Add environment variables
+6. Get backend URL
+7. Update `VITE_API_URL` in Vercel
 
-See [DEPLOY.md](./DEPLOY.md) for step-by-step guide.
+**Result:** Full-stack app with $5/month free credit!
 
-### Option 2: Render/Railway
+See [Railway Deployment Guide](./docs/RAILWAY_DEPLOYMENT.md) for detailed steps.
 
-**Backend API (Optional):**
-- Deploy Node.js backend separately
-- Update `VITE_API_URL` in Vercel
-- Enable real-time features
+### Option 2: Local Development
+```bash
+# Backend
+cd backend && npm run dev  # http://localhost:4000
 
-**Note:** App works with Supabase directly (backend optional)
+# Frontend  
+cd frontend && npm run dev # http://localhost:5173
+```
 
 ---
 

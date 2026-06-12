@@ -77,18 +77,27 @@ git push -u origin main
 
 ## 🔧 Backend Deployment (Optional)
 
-Your frontend works with Supabase directly. If you need the Node.js backend:
+Your frontend works with Supabase directly. If you want the Node.js backend for real-time features:
 
-### Deploy to Render.com:
-1. Go to [render.com](https://render.com)
-2. New → Web Service
-3. Connect GitHub
-4. Root Directory: `backend`
-5. Build: `npm install`
-6. Start: `npm start`
-7. Add environment variables from `backend/.env`
-8. Deploy
-9. Update `VITE_API_URL` in Vercel with Render URL
+### Deploy to Railway.app (Free, No Card Required):
+1. Go to [railway.app](https://railway.app)
+2. Sign in with GitHub
+3. New Project → Deploy from GitHub
+4. Select RUNTRACKPRO repository
+5. Set root directory: `backend`
+6. Add environment variables from `backend/.env`
+7. Generate domain
+8. Deploy!
+9. Update `VITE_API_URL` in Vercel with Railway URL
+10. Redeploy frontend
+
+**Railway Free Tier:**
+- $5 credit/month
+- No credit card required
+- Doesn't spin down
+- Perfect for development
+
+See [Railway Deployment Guide](./docs/RAILWAY_DEPLOYMENT.md) for detailed steps.
 
 ---
 
