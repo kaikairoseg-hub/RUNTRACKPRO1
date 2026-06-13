@@ -99,13 +99,7 @@ function Shell() {
   return (
     <div
       className="mx-auto min-h-screen relative"
-      style={{ 
-        maxWidth: 680,
-        background: `
-          linear-gradient(135deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.75) 100%),
-          url('/background.jpg') center/cover fixed
-        `
-      }}
+      style={{ maxWidth: 680 }}
     >
       {/* Top bar - Glassmorphism */}
       <header className="sticky top-0 z-40 glass-dark px-4 py-3 flex items-center justify-between">
