@@ -22,7 +22,11 @@ const httpServer = createServer(app);
 // Socket.io configuration
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: [
+      process.env.CLIENT_URL || 'http://localhost:5173',
+      'http://localhost:5173',
+      'http://192.168.1.105:5173'
+    ],
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -30,7 +34,11 @@ const io = new Server(httpServer, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  origin: [
+    process.env.CLIENT_URL || 'http://localhost:5173',
+    'http://localhost:5173',
+    'http://192.168.1.105:5173'
+  ],
   credentials: true
 }));
 app.use(express.json());

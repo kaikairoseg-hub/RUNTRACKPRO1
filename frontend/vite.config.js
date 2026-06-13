@@ -62,6 +62,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: '0.0.0.0', // Bind to all network interfaces for phone access
     port: 5173,
     proxy: {
       // Proxy all /api and /socket.io requests to the backend during development
