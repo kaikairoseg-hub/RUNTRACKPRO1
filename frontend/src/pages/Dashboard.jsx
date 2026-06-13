@@ -14,6 +14,13 @@ export default function Dashboard() {
   const [monthlyData, setMonthlyData] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [coachAdvice, setCoachAdvice] = useState(null);
+  const [now, setNow] = useState(new Date());
+
+  // Live clock — ticks every second
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     api.get("/api/users/me")
@@ -40,8 +47,20 @@ export default function Dashboard() {
   const firstName = profile?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
   const stats = profile?.stats ?? {};
 
-  const hour = new Date().getHours();
+  const hour = now.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
+
+  // Format time as HH:MM:SS
+  const timeStr = now.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  });
+
+  const dateStr = now.toLocaleDateString("en-US", {
+    weekday: "long", month: "long", day: "numeric", year: "numeric",
+  });
 
   return (
     <div>
@@ -49,9 +68,17 @@ export default function Dashboard() {
         <h2 className="text-2xl font-extrabold text-white mb-1">
           {greeting}, {firstName} 👋
         </h2>
-        <p className="text-sm text-gray-400">
-          {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}
-        </p>
+        {/* Live clock */}
+        <div className="flex items-center gap-3 mt-1">
+          <p className="text-sm text-gray-400">{dateStr}</p>
+          <span
+            className="text-sm font-bold tracking-widest px-2.5 py-0.5 rounded-lg border border-gold/30"
+            style={{ background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontVariantNumeric: "tabular-nums" }}
+          >
+            <i className="bi bi-clock mr-1.5 text-xs"></i>
+            {timeStr}
+          </span>
+        </div>
       </div>
 
       {/* Visual Cards Grid - 2x2 Layout */}

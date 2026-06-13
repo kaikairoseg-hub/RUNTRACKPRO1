@@ -98,6 +98,7 @@ function Shell() {
 
   return (
     <div
+      id="app-shell"
       className="mx-auto min-h-screen relative"
       style={{ maxWidth: 680 }}
     >
