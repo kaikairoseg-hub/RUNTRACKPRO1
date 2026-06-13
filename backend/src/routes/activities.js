@@ -51,9 +51,15 @@ router.get('/', authMiddleware, async (req, res) => {
     // Transform to include like/comment counts and user's like status
     const activities = data.map(activity => ({
       ...activity,
+      // Normalize profile field
+      profile: activity.profile,
+      profiles: undefined, // Remove if exists
       likes_count: activity.likes?.length || 0,
       comments_count: activity.comments?.length || 0,
       liked_by_me: activity.likes?.some(like => like.user_id === userId) || false,
+      liked: activity.likes?.some(like => like.user_id === userId) || false,
+      like_count: activity.likes?.length || 0,
+      comment_count: activity.comments?.length || 0,
       likes: undefined, // Remove raw likes array
     }));
 

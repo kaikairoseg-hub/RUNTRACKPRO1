@@ -77,8 +77,8 @@ export function ActivityCard({ activity, onLike, onComment }) {
     return () => { cancelled = true; };
   }, [showComments, activity.id]);
 
-  const profile = activity.profiles ?? {};
-  const name = profile.full_name || "Unknown";
+  const profile = activity.profile ?? activity.profiles ?? {};
+  const name = profile.full_name || "Anonymous";
   const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   const color = TYPE_COLORS[activity.type] ?? "#6B7280";
 
@@ -105,7 +105,7 @@ export function ActivityCard({ activity, onLike, onComment }) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden mb-3">
+    <div className="glass rounded-2xl overflow-hidden mb-3 border border-white/10">
       <div className="p-4 pb-0">
         {/* Header */}
         <div className="flex items-center gap-2.5 mb-3">
@@ -116,8 +116,8 @@ export function ActivityCard({ activity, onLike, onComment }) {
             src={profile.avatar_url}
           />
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-gray-900 truncate">{name}</p>
-            <p className="text-xs text-gray-500">
+            <p className="font-semibold text-sm text-white truncate">{name}</p>
+            <p className="text-xs text-gray-400">
               {new Date(activity.created_at).toLocaleDateString("en-US", {
                 weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
               })}
@@ -128,12 +128,12 @@ export function ActivityCard({ activity, onLike, onComment }) {
 
         {/* Title */}
         <div className="flex items-center flex-wrap gap-2 mb-3">
-          <p className="font-bold text-base text-gray-900 flex items-center gap-2">
+          <p className="font-bold text-base text-white flex items-center gap-2">
             <i className={`${TYPE_ICONS[activity.type]} text-lg`}></i>
             {activity.title}
           </p>
           {activity.weather_condition && activity.temperature_celsius != null && (
-            <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+            <span className="inline-flex items-center gap-1 text-xs text-gray-400 glass-light px-2 py-0.5 rounded-full border border-white/10">
               <i className={`${getWeatherIcon(activity.weather_condition)}`}></i> 
               {Math.round(activity.temperature_celsius)}°C
             </span>
@@ -150,21 +150,21 @@ export function ActivityCard({ activity, onLike, onComment }) {
           ].map((s) => (
             <div key={s.label} className="text-center">
               <p className="text-[10px] text-gray-400 uppercase tracking-wide mb-0.5">{s.label}</p>
-              <p className="text-sm font-semibold text-gray-900">{s.value}</p>
+              <p className="text-sm font-semibold text-white">{s.value}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Action bar */}
-      <div className="border-t border-gray-100 px-4 py-2.5 flex gap-2">
+      <div className="border-t border-white/10 px-4 py-2.5 flex gap-2">
         <button
           onClick={() => onLike?.(activity.id)}
           className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium transition-all"
           style={{
-            border: `1px solid ${activity.liked ? "#FC4C02" : "#E5E7EB"}`,
-            background: activity.liked ? "#FFF0EA" : "white",
-            color: activity.liked ? "#FC4C02" : "#6B7280",
+            border: `1px solid ${activity.liked ? "#D4AF37" : "rgba(255,255,255,0.1)"}`,
+            background: activity.liked ? "rgba(212, 175, 55, 0.2)" : "rgba(255,255,255,0.05)",
+            color: activity.liked ? "#D4AF37" : "#9CA3AF",
           }}
         >
           <i className={`${activity.liked ? "bi-heart-fill" : "bi-heart"}`}></i>
@@ -173,13 +173,13 @@ export function ActivityCard({ activity, onLike, onComment }) {
 
         <button
           onClick={() => setShowComments((v) => !v)}
-          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-500 transition-all hover:bg-gray-50"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg text-sm font-medium glass-light border border-white/10 text-gray-400 transition-all hover:bg-white/10"
         >
           <i className="bi-chat"></i>
           {activity.comment_count ?? 0}
         </button>
 
-        <button className="flex items-center gap-1.5 ml-auto px-3.5 py-1.5 rounded-lg text-sm font-medium border border-gray-200 bg-white text-gray-500 hover:bg-gray-50">
+        <button className="flex items-center gap-1.5 ml-auto px-3.5 py-1.5 rounded-lg text-sm font-medium glass-light border border-white/10 text-gray-400 hover:bg-white/10">
           <i className="bi-share"></i>
           Share
         </button>
@@ -187,12 +187,12 @@ export function ActivityCard({ activity, onLike, onComment }) {
 
       {/* Comments panel */}
       {showComments && (
-        <div className="border-t border-gray-100 p-4">
+        <div className="border-t border-white/10 p-4">
           {/* Existing comments */}
           {commentsLoading ? (
             <div className="mb-3 space-y-2">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-4 bg-gray-100 rounded animate-pulse" />
+                <div key={i} className="h-4 glass-light rounded animate-pulse" />
               ))}
             </div>
           ) : comments.length === 0 ? (
@@ -210,8 +210,8 @@ export function ActivityCard({ activity, onLike, onComment }) {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-1.5 flex-wrap">
-                      <span className="text-xs font-semibold text-gray-800">
-                        {c.full_name ?? "Unknown"}
+                      <span className="text-xs font-semibold text-white">
+                        {c.full_name ?? "Anonymous"}
                       </span>
                       <span className="text-[10px] text-gray-400">
                         {new Date(c.created_at).toLocaleDateString("en-US", {
@@ -220,7 +220,7 @@ export function ActivityCard({ activity, onLike, onComment }) {
                         })}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-700 mt-0.5 break-words">{c.body}</p>
+                    <p className="text-xs text-gray-300 mt-0.5 break-words">{c.body}</p>
                   </div>
                 </div>
               ))}
@@ -235,12 +235,12 @@ export function ActivityCard({ activity, onLike, onComment }) {
               onChange={(e) => setComment(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && handlePost()}
               placeholder="Add a comment…"
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-1.5 text-sm bg-gray-50 outline-none focus:border-brand"
+              className="flex-1 glass-light border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white placeholder-gray-500 outline-none focus:border-gold"
             />
             <button
               onClick={handlePost}
               disabled={posting || !comment.trim()}
-              className="px-3.5 py-1.5 rounded-lg bg-brand text-white text-sm font-semibold disabled:opacity-50"
+              className="px-3.5 py-1.5 rounded-lg bg-gold text-black text-sm font-semibold disabled:opacity-50"
             >
               Post
             </button>
