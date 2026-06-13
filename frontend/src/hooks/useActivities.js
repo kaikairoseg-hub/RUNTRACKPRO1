@@ -91,6 +91,12 @@ export function useActivities(filter = "everyone") {
     return comment;
   };
 
+  const deleteActivity = async (activityId) => {
+    await api.delete(`/api/activities/${activityId}`);
+    // Remove activity from state immediately
+    setActivities((prev) => prev.filter((a) => a.id !== activityId));
+  };
+
   return {
     activities,
     loading,
@@ -107,5 +113,6 @@ export function useActivities(filter = "everyone") {
     },
     toggleLike,
     postComment,
+    deleteActivity,
   };
 }

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ActivityCard } from "../components/ActivityCard";
 import { useActivities } from "../hooks/useActivities";
+import { useAuth } from "../context/AuthContext";
 
 const FILTERS = [
   { value: "everyone", label: "Everyone" },
@@ -9,6 +10,7 @@ const FILTERS = [
 ];
 
 export default function Feed() {
+  const { user } = useAuth();
   const [filter, setFilter] = useState("everyone");
   const {
     activities,
@@ -19,6 +21,7 @@ export default function Feed() {
     retry,
     toggleLike,
     postComment,
+    deleteActivity,
   } = useActivities(filter);
 
   // True only on the very first load (no activities yet and loading)
@@ -79,6 +82,8 @@ export default function Feed() {
           activity={a}
           onLike={toggleLike}
           onComment={postComment}
+          onDelete={deleteActivity}
+          currentUserId={user?.id}
         />
       ))}
 

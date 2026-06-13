@@ -50,12 +50,14 @@ function getWeatherIcon(condition) {
   return WEATHER_EMOJIS[condition] ?? "bi-thermometer-half";
 }
 
-export function ActivityCard({ activity, onLike, onComment }) {
+export function ActivityCard({ activity, onLike, onComment, onDelete, currentUserId }) {
   const [showComments, setShowComments] = useState(false);
   const [comment, setComment] = useState("");
   const [posting, setPosting] = useState(false);
   const [comments, setComments] = useState([]);
   const [commentsLoading, setCommentsLoading] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Fetch existing comments when the panel is opened
   useEffect(() => {
@@ -81,6 +83,9 @@ export function ActivityCard({ activity, onLike, onComment }) {
   const name = profile.full_name || "Anonymous";
   const initials = name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   const color = TYPE_COLORS[activity.type] ?? "#6B7280";
+  
+  // Check if this activity belongs to current user
+  const isOwnActivity = activity.user_id === currentUserId;
 
   const handlePost = async () => {
     if (!comment.trim()) return;
@@ -104,6 +109,17 @@ export function ActivityCard({ activity, onLike, onComment }) {
     }
   };
 
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      await onDelete?.(activity.id);
+      setShowDeleteModal(false);
+    } catch (error) {
+      console.error('Delete failed:', error);
+      setDeleting(false);
+    }
+  };
+
   return (
     <div className="glass rounded-2xl overflow-hidden mb-3 border border-white/10">
       <div className="p-4 pb-0">
@@ -124,6 +140,15 @@ export function ActivityCard({ activity, onLike, onComment }) {
             </p>
           </div>
           <Badge label={activity.type} color={color} />
+          {isOwnActivity && (
+            <button
+              onClick={() => setShowDeleteModal(true)}
+              className="w-8 h-8 rounded-lg glass-light border border-red-400/30 text-red-400 hover:bg-red-500/10 transition-all flex items-center justify-center"
+              title="Delete activity"
+            >
+              <i className="bi-trash text-sm"></i>
+            </button>
+          )}
         </div>
 
         {/* Title */}
@@ -244,6 +269,53 @@ export function ActivityCard({ activity, onLike, onComment }) {
             >
               Post
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete confirmation modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4" onClick={() => setShowDeleteModal(false)}>
+          <div className="glass-dark rounded-2xl p-6 w-full max-w-sm border border-white/10" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-full bg-red-500/20 border border-red-400/30 flex items-center justify-center">
+                <i className="bi-trash text-red-400 text-xl"></i>
+              </div>
+              <div>
+                <h3 className="font-bold text-lg text-white">Delete Activity</h3>
+                <p className="text-sm text-gray-400">This cannot be undone</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-300 mb-6">
+              Are you sure you want to delete <span className="font-semibold text-white">"{activity.title}"</span>? 
+              This will permanently remove the activity and all its comments and likes.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+                className="flex-1 py-3 rounded-xl glass-light border border-white/10 text-gray-300 text-sm font-semibold hover:bg-white/10 transition-all disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-3 rounded-xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <i className="bi-hourglass-split animate-spin"></i>
+                    Deleting...
+                  </>
+                ) : (
+                  <>
+                    <i className="bi-trash"></i>
+                    Delete
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
