@@ -6,6 +6,7 @@ import {
 import { StatCard } from "../components/StatCard";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
+import { calcBMI, calcTDEE, calcDailyCalorieTarget, calcDailyStepsGoal, kmToSteps } from "../lib/fitness";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -46,6 +47,19 @@ export default function Dashboard() {
 
   const firstName = profile?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
   const stats = profile?.stats ?? {};
+
+  // ── Fitness calculations ──────────────────────────────────────────────────
+  const bmi           = calcBMI(profile?.weight_kg, profile?.height_cm);
+  const tdee          = calcTDEE(profile?.weight_kg, profile?.height_cm, profile?.age, profile?.gender, profile?.activity_level);
+  const calTarget     = calcDailyCalorieTarget(profile?.weight_kg, profile?.height_cm, profile?.age, profile?.gender, profile?.activity_level, profile?.weight_goal);
+  const stepsGoal     = profile?.daily_steps_goal ?? calcDailyStepsGoal(profile?.weight_goal, profile?.activity_level);
+  // Today's estimated steps from activities logged today
+  const todayActivities = weeklyData?.[weeklyData.length - 1];
+  const todaySteps    = kmToSteps(todayActivities?.distance_km ?? 0);
+  const stepsPercent  = Math.min(100, Math.round((todaySteps / stepsGoal) * 100));
+  // Today's calories burned from tracked activities
+  const todayCalBurned = stats.totalCalories ?? 0; // overall total for display
+  const hasBodyStats  = profile?.weight_kg && profile?.height_cm && profile?.age;
 
   const hour = now.getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -200,8 +214,86 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Personal records - Compact */}
-      <div className="glass rounded-2xl p-4 mb-4 transition-all duration-300 hover:border-gold/30 border border-white/10">
+      {/* ── Health Targets (shown only when body stats are set) ── */}
+      {hasBodyStats ? (
+        <div className="glass rounded-2xl p-4 mb-4 border border-white/10">
+          <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+            <i className="bi bi-heart-pulse-fill text-gold"></i>
+            Today's Health Targets
+          </h3>
+
+          {/* BMI chip */}
+          {bmi && (
+            <div className="flex items-center gap-2 mb-3 p-2.5 glass-light rounded-xl border border-white/10">
+              <i className="bi bi-person-bounding-box text-lg" style={{ color: bmi.color }}></i>
+              <div className="flex-1">
+                <p className="text-xs text-gray-400">BMI</p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-white">{bmi.value}</span>
+                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold" style={{ background: `${bmi.color}22`, color: bmi.color }}>{bmi.category}</span>
+                </div>
+              </div>
+              {calTarget && (
+                <div className="text-right">
+                  <p className="text-[10px] text-gray-400">Cal Target</p>
+                  <p className="text-sm font-bold text-gold">{calTarget.toLocaleString()} kcal</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Steps progress */}
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <div className="flex items-center gap-1.5">
+                <i className="bi bi-person-walking text-green-400 text-sm"></i>
+                <span className="text-xs text-gray-300 font-medium">Daily Steps</span>
+              </div>
+              <span className="text-xs text-gray-400">
+                <span className="font-bold text-white">{todaySteps.toLocaleString()}</span> / {stepsGoal.toLocaleString()}
+              </span>
+            </div>
+            <div className="w-full bg-white/10 rounded-full h-2">
+              <div
+                className="h-2 rounded-full transition-all duration-500"
+                style={{ width: `${stepsPercent}%`, background: "linear-gradient(to right, #10b981, #34d399)" }}
+              />
+            </div>
+            <p className="text-[10px] text-gray-500 mt-1">{stepsPercent}% of daily goal</p>
+          </div>
+
+          {/* Calorie burn vs target */}
+          {tdee && (
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { label: "TDEE",      value: `${tdee.toLocaleString()}`,      unit: "kcal/day", icon: "bi-lightning-charge-fill", color: "#f59e0b" },
+                { label: "Target",    value: `${(calTarget ?? tdee).toLocaleString()}`, unit: "kcal/day", icon: "bi-bullseye",              color: "#D4AF37" },
+                { label: "Steps Goal",value: stepsGoal.toLocaleString(),      unit: "steps",    icon: "bi-person-walking",         color: "#10b981" },
+              ].map((s) => (
+                <div key={s.label} className="glass-light rounded-xl p-2.5 text-center border border-white/10">
+                  <i className={`${s.icon} text-base mb-1 block`} style={{ color: s.color }}></i>
+                  <p className="text-xs font-bold text-white leading-none">{s.value}</p>
+                  <p className="text-[9px] text-gray-500 mt-0.5">{s.unit}</p>
+                  <p className="text-[9px] text-gray-400 uppercase tracking-wide mt-0.5">{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Prompt to set up body stats */
+        <div className="glass rounded-2xl p-4 mb-4 border border-gold/20 bg-gold/5">
+          <div className="flex items-center gap-3">
+            <i className="bi bi-person-bounding-box text-3xl text-gold"></i>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-white">Set up Body Stats</p>
+              <p className="text-xs text-gray-400">Add your age, weight & height on the Profile page for accurate calorie and steps targets</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Personal records - Compact */}      <div className="glass rounded-2xl p-4 mb-4 transition-all duration-300 hover:border-gold/30 border border-white/10">
         <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
           <i className="bi bi-trophy-fill text-gold"></i>
           Personal Records

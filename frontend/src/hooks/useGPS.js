@@ -1,5 +1,7 @@
 import { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { getSocket } from "../lib/socket";
+import { calcCalories } from "../lib/fitness";
+import { api } from "../lib/api";
 
 const EARTH_RADIUS_KM = 6371;
 const THROTTLE_MS = 3000;
@@ -16,12 +18,20 @@ function haversine([lat1, lng1], [lat2, lng2]) {
 
 export function useGPS() {
   const [tracking, setTracking] = useState(false);
-  const [points, setPoints] = useState([]);         // [[lat, lng], ...]
-  const [distance, setDistance] = useState(0);       // km
-  const [elapsed, setElapsed] = useState(0);         // seconds
+  const [points, setPoints] = useState([]);
+  const [distance, setDistance] = useState(0);
+  const [elapsed, setElapsed] = useState(0);
   const [activityType, setActivityType] = useState("Running");
   const [error, setError] = useState(null);
-  const [elevationGain, setElevationGain] = useState(0); // metres
+  const [elevationGain, setElevationGain] = useState(0);
+  const [userWeight, setUserWeight] = useState(null); // kg, loaded from profile
+
+  // Load user weight for accurate calorie calculation
+  useEffect(() => {
+    api.get("/api/users/me")
+      .then((p) => { if (p?.weight_kg) setUserWeight(parseFloat(p.weight_kg)); })
+      .catch(() => {});
+  }, []);
 
   const watchIdRef = useRef(null);
   const timerRef = useRef(null);
@@ -118,7 +128,7 @@ export function useGPS() {
 
     const socket = getSocket();
     if (socket) {
-      const calories = Math.round(distance * 70); // rough estimate
+      const calories = calcCalories(distance, elapsed, activityType, userWeight);
       socket.emit("activity:stop", {
         title: title || `${activityType} ${new Date().toLocaleDateString()}`,
         distance,
@@ -129,7 +139,7 @@ export function useGPS() {
     }
 
     return { distance, elapsed, activityType };
-  }, [distance, elapsed, activityType, elevationGain]);
+  }, [distance, elapsed, activityType, elevationGain, userWeight]);
 
   useEffect(() => {
     return () => {
@@ -149,6 +159,7 @@ export function useGPS() {
     setActivityType,
     error,
     elevationGain,
+    userWeight,
     start,
     stop,
   };

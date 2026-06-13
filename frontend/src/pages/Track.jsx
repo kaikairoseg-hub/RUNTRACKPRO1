@@ -4,6 +4,7 @@ import L from "leaflet";
 import { useGPS } from "../hooks/useGPS";
 import { getSocket } from "../lib/socket";
 import { ManualLogForm } from "../components/ManualLogForm";
+import { calcCalories } from "../lib/fitness";
 
 // Fix Leaflet default icon paths broken by bundlers
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -45,7 +46,7 @@ const TABS = ["GPS Track", "Manual Log"];
 export default function Track() {
   const {
     tracking, points, distance, elapsed, metric,
-    formatTime, activityType, setActivityType, error, start, stop,
+    formatTime, activityType, setActivityType, error, start, stop, userWeight,
   } = useGPS();
 
   const [activeTab, setActiveTab] = useState("GPS Track");
@@ -185,6 +186,17 @@ export default function Track() {
             <p className="text-xl font-bold text-white">{s.value}</p>
           </div>
         ))}
+      </div>
+      {/* Calories live estimate */}
+      <div className="glass rounded-xl p-3 mb-4 flex items-center justify-between border border-white/10">
+        <div className="flex items-center gap-2">
+          <i className="bi bi-fire text-orange-400 text-lg"></i>
+          <div>
+            <p className="text-[10px] text-gray-400 uppercase tracking-wide">Calories Burned</p>
+            <p className="text-base font-bold text-white">{calcCalories(distance, elapsed, activityType, userWeight)} kcal</p>
+          </div>
+        </div>
+        <p className="text-[10px] text-gray-500">{userWeight ? `Based on ${userWeight}kg` : "Set weight in Profile for accuracy"}</p>
       </div>
 
       {/* CTA - Gold Button with Interactive */}

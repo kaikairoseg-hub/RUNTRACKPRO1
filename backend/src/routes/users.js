@@ -72,7 +72,8 @@ router.get('/me', authMiddleware, async (req, res) => {
 router.patch('/me', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
-    const { full_name, bio, city, avatar_url, preferred_activity, fitness_goal_km, units } = req.body;
+    const { full_name, bio, city, avatar_url, preferred_activity, fitness_goal_km, units,
+            age, weight_kg, height_cm, gender, activity_level, weight_goal, daily_steps_goal } = req.body;
 
     // First, check if profile exists, create if not
     const { data: existingProfile } = await supabase
@@ -109,7 +110,13 @@ router.patch('/me', authMiddleware, async (req, res) => {
     if (preferred_activity !== undefined) updates.preferred_activity = preferred_activity;
     if (fitness_goal_km !== undefined) updates.fitness_goal_km = parseFloat(fitness_goal_km);
     if (units !== undefined) updates.units = units;
-
+    if (age !== undefined) updates.age = age ? parseInt(age) : null;
+    if (weight_kg !== undefined) updates.weight_kg = weight_kg ? parseFloat(weight_kg) : null;
+    if (height_cm !== undefined) updates.height_cm = height_cm ? parseFloat(height_cm) : null;
+    if (gender !== undefined) updates.gender = gender;
+    if (activity_level !== undefined) updates.activity_level = activity_level;
+    if (weight_goal !== undefined) updates.weight_goal = weight_goal;
+    if (daily_steps_goal !== undefined) updates.daily_steps_goal = parseInt(daily_steps_goal);
     updates.updated_at = new Date().toISOString();
 
     const { data, error } = await supabase
