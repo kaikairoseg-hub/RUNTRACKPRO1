@@ -24,22 +24,15 @@ export default function Feed() {
     deleteActivity,
     hiddenIds,
     hideActivity,
+    unhideActivity,
   } = useActivities(filter);
 
-  // True only on the very first load (no activities yet and loading)
   const isInitialLoad = loading && activities.length === 0;
-
-  // Filter out hidden activities for display
-  const visibleActivities = activities.filter((a) => !hiddenIds.has(a.id));
-  const hiddenCount = activities.length - visibleActivities.length;
-
-  const clearHidden = () => {
-    localStorage.removeItem("hidden_activities");
-    window.location.reload();
-  };
+  const hiddenCount = activities.filter((a) => hiddenIds.has(a.id) && a.user_id === user?.id).length;
 
   return (
     <div>
+      {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-extrabold text-white">Activity Feed</h2>
         <select
@@ -53,19 +46,13 @@ export default function Feed() {
         </select>
       </div>
 
-      {/* Hidden activities notice */}
+      {/* Hidden count notice */}
       {hiddenCount > 0 && (
-        <div className="glass-light border border-white/10 rounded-xl px-4 py-2.5 mb-3 flex items-center justify-between">
-          <p className="text-xs text-gray-400 flex items-center gap-1.5">
-            <i className="bi bi-eye-slash text-gray-400"></i>
-            {hiddenCount} {hiddenCount === 1 ? "activity" : "activities"} hidden
+        <div className="glass-light border border-white/10 rounded-xl px-4 py-2.5 mb-3 flex items-center gap-1.5">
+          <i className="bi bi-eye-slash text-gray-400 text-sm"></i>
+          <p className="text-xs text-gray-400">
+            {hiddenCount} of your {hiddenCount === 1 ? "post is" : "posts are"} hidden — tap ⋮ to unhide
           </p>
-          <button
-            onClick={clearHidden}
-            className="text-xs text-gold hover:underline font-medium"
-          >
-            Show all
-          </button>
         </div>
       )}
 
@@ -92,7 +79,7 @@ export default function Feed() {
       )}
 
       {/* Empty state */}
-      {!loading && !error && visibleActivities.length === 0 && activities.length === 0 && (
+      {!loading && !error && activities.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <i className="bi bi-person-running text-4xl mb-3 block"></i>
           <p className="font-medium text-white">No activities yet</p>
@@ -100,18 +87,47 @@ export default function Feed() {
         </div>
       )}
 
-      {/* Activity list — hidden ones are filtered out */}
-      {visibleActivities.map((a) => (
-        <ActivityCard
-          key={a.id}
-          activity={a}
-          onLike={toggleLike}
-          onComment={postComment}
-          onDelete={deleteActivity}
-          onHide={hideActivity}
-          currentUserId={user?.id}
-        />
-      ))}
+      {/* Activity list */}
+      {activities.map((a) => {
+        const isOwn = a.user_id === user?.id;
+        const isHidden = hiddenIds.has(a.id);
+
+        // Hidden own posts: show a collapsed stub with Unhide option
+        if (isHidden && isOwn) {
+          return (
+            <div key={a.id} className="glass rounded-2xl mb-3 border border-white/10 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-gray-500 min-w-0">
+                <i className="bi bi-eye-slash text-sm flex-shrink-0"></i>
+                <span className="text-xs truncate">{a.title} — hidden from feed</span>
+              </div>
+              <button
+                onClick={() => unhideActivity(a.id)}
+                className="flex-shrink-0 ml-3 text-xs text-gold hover:underline font-medium flex items-center gap-1"
+              >
+                <i className="bi bi-eye text-xs"></i>
+                Unhide
+              </button>
+            </div>
+          );
+        }
+
+        // Hidden other users' posts: skip entirely
+        if (isHidden) return null;
+
+        return (
+          <ActivityCard
+            key={a.id}
+            activity={a}
+            onLike={toggleLike}
+            onComment={postComment}
+            onDelete={deleteActivity}
+            onHide={hideActivity}
+            onUnhide={unhideActivity}
+            isHidden={isHidden}
+            currentUserId={user?.id}
+          />
+        );
+      })}
 
       {/* Pagination controls */}
       {activities.length > 0 && (
@@ -135,7 +151,6 @@ export default function Feed() {
             </button>
           )}
 
-          {/* All caught up — Bootstrap icon instead of emoji */}
           {!hasMore && !loading && (
             <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
               <i className="bi bi-check-circle-fill text-green-400"></i>

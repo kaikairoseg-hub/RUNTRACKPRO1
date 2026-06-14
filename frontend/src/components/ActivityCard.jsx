@@ -133,7 +133,7 @@ function RouteMap({ geojson, color }) {
   );
 }
 
-export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, currentUserId }) {
+export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, onUnhide, isHidden, currentUserId }) {
   const [showComments, setShowComments] = useState(false);
   const [comment, setComment] = useState("");
   const [posting, setPosting] = useState(false);
@@ -235,7 +235,7 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, cu
           </div>
           <Badge label={activity.type} color={typeColor} />
 
-          {/* 3-dot menu — OWN activities only: Hide + Delete */}
+          {/* 3-dot menu — OWN activities only: Hide/Unhide + Delete */}
           {isOwnActivity && (
             <div className="relative flex-shrink-0 ml-1" ref={menuRef}>
               <button
@@ -248,17 +248,27 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, cu
               {showMenu && (
                 <div
                   className="absolute right-0 top-9 z-50 glass-dark rounded-xl border border-white/10 overflow-hidden shadow-xl"
-                  style={{ minWidth: 170 }}
+                  style={{ minWidth: 180 }}
                 >
-                  {/* Hide option */}
-                  <button
-                    onClick={() => { onHide?.(activity.id); setShowMenu(false); }}
-                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 transition-all text-left border-b border-white/10"
-                  >
-                    <i className="bi-eye-slash text-base text-gray-400"></i>
-                    Hide from feed
-                  </button>
-                  {/* Delete option */}
+                  {/* Hide / Unhide toggle */}
+                  {isHidden ? (
+                    <button
+                      onClick={() => { onUnhide?.(activity.id); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-green-400 hover:bg-white/10 transition-all text-left border-b border-white/10"
+                    >
+                      <i className="bi-eye text-base"></i>
+                      Unhide post
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => { onHide?.(activity.id); setShowMenu(false); }}
+                      className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 transition-all text-left border-b border-white/10"
+                    >
+                      <i className="bi-eye-slash text-base text-gray-400"></i>
+                      Hide from feed
+                    </button>
+                  )}
+                  {/* Delete */}
                   <button
                     onClick={() => { setShowDeleteModal(true); setShowMenu(false); }}
                     className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 transition-all text-left"
