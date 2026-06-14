@@ -14,7 +14,7 @@ const TYPE_COLORS = {
   Hiking:  "#10B981",
 };
 const TYPE_ICONS = {
-  Running: "bi-person-running",
+  Running: "bi-stopwatch-fill",
   Cycling: "bi-bicycle",
   Walking: "bi-person-walking",
   Hiking:  "bi-backpack",
@@ -377,7 +377,7 @@ export default function Dashboard() {
           {[
             { label: "Fastest 5K",    value: analytics?.personalRecords?.fastest_5k ?? "—",   icon: "bi-lightning-charge-fill", color: "#FC4C02", sub: "Running" },
             { label: "Longest",       value: analytics?.personalRecords?.longest_km ? `${analytics.personalRecords.longest_km} km` : "—", icon: "bi-rulers", color: "#2196F3", sub: "any type" },
-            { label: "Best Run Pace", value: analytics?.personalRecords?.best_run_pace ?? "—", icon: "bi-person-running", color: "#FC4C02", sub: "Running" },
+            { label: "Best Run Pace", value: analytics?.personalRecords?.best_run_pace ?? "—", icon: "bi-stopwatch-fill", color: "#FC4C02", sub: "Running" },
             { label: "Best Speed",    value: analytics?.personalRecords?.best_cycle_speed ?? "—", icon: "bi-bicycle", color: "#2196F3", sub: "Cycling" },
             { label: "Best Walk",     value: analytics?.personalRecords?.best_walk_pace ?? "—", icon: "bi-person-walking", color: "#7C3AED", sub: "Walking" },
             { label: "Best Hike",     value: analytics?.personalRecords?.best_hike_pace ?? "—", icon: "bi-backpack", color: "#10B981", sub: "Hiking" },
