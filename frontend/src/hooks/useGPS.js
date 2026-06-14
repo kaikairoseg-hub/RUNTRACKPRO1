@@ -121,7 +121,7 @@ export function useGPS() {
     timerRef.current = setInterval(() => setElapsed((e) => e + 1), 1000);
   }, [activityType]);
 
-  const stop = useCallback(async (title) => {
+  const stop = useCallback(async (title, locationName) => {
     setTracking(false);
     navigator.geolocation.clearWatch(watchIdRef.current);
     clearInterval(timerRef.current);
@@ -135,6 +135,7 @@ export function useGPS() {
         duration_seconds: elapsed,
         calories,
         elevation_gain_m: elevationGain,
+        location_name: locationName ?? null,
       });
     }
 

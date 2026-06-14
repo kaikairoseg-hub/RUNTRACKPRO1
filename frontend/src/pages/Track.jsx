@@ -43,7 +43,26 @@ const ACTIVITY_TYPES = ["Running", "Cycling", "Walking", "Hiking"];
 
 const TABS = ["GPS Track", "Manual Log"];
 
-export default function Track() {
+/** Reverse geocode [lat, lng] → location name using Nominatim */
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`,
+      { headers: { "Accept-Language": "en" } }
+    );
+    const data = await res.json();
+    // Return barangay/village/town name
+    const a = data.address ?? {};
+    return (
+      a.village ?? a.suburb ?? a.neighbourhood ??
+      a.town ?? a.city_district ?? a.city ?? a.county ?? "Unknown location"
+    );
+  } catch {
+    return null;
+  }
+}
+
+export default function Track({ onNavigate }) {
   const {
     tracking, points, distance, elapsed, metric,
     formatTime, activityType, setActivityType, error, start, stop, userWeight,
@@ -53,6 +72,9 @@ export default function Track() {
   const [saveTitle, setSaveTitle] = useState("");
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
+  const [locationName, setLocationName] = useState(null);
+  const [geocoding, setGeocoding] = useState(false);
+  const [saving, setSaving] = useState(false);
   const mapCenter = [14.5995, 120.9842]; // Manila default
   const currentPoint = points[points.length - 1] ?? null;
 
@@ -68,18 +90,32 @@ export default function Track() {
     return () => socket.off("activity:saved", handler);
   }, []);
 
-  const handleStop = () => {
+  const handleStop = async () => {
     if (points.length < 2) {
       stop("Discarded");
       return;
     }
+    // Reverse-geocode the start point to get location name
+    setGeocoding(true);
+    const loc = await reverseGeocode(points[0][0], points[0][1]);
+    setLocationName(loc);
+    setGeocoding(false);
+    // Pre-fill title with activity + location
+    const defaultTitle = loc
+      ? `${activityType} in ${loc}`
+      : `${activityType} ${new Date().toLocaleDateString()}`;
+    setSaveTitle(defaultTitle);
     setShowSaveModal(true);
   };
 
   const handleSave = async () => {
+    setSaving(true);
     setShowSaveModal(false);
-    await stop(saveTitle || `${activityType} ${new Date().toLocaleDateString()}`);
+    await stop(saveTitle || `${activityType} ${new Date().toLocaleDateString()}`, locationName);
     setSaveTitle("");
+    setSaving(false);
+    // Navigate to Feed — also handled by socket activity:saved in App.jsx
+    onNavigate?.("feed");
   };
 
   return (
@@ -222,7 +258,30 @@ export default function Track() {
       {showSaveModal && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-end justify-center z-50 p-4">
           <div className="glass-dark rounded-2xl p-6 w-full max-w-sm border border-white/10">
-            <h3 className="font-bold text-lg text-white mb-4">Save Activity</h3>
+            <h3 className="font-bold text-lg text-white mb-1">Save Activity</h3>
+
+            {/* Location chip */}
+            {locationName && (
+              <div className="flex items-center gap-1.5 mb-4">
+                <i className="bi bi-geo-alt-fill text-gold text-xs"></i>
+                <span className="text-xs text-gray-300">{locationName}</span>
+              </div>
+            )}
+
+            {/* Summary stats */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {[
+                { label: "Distance", value: `${distance.toFixed(2)} km` },
+                { label: "Duration", value: formatTime(elapsed) },
+                { label: "Calories", value: `${calcCalories(distance, elapsed, activityType, userWeight)} kcal` },
+              ].map((s) => (
+                <div key={s.label} className="glass-light rounded-xl p-2 text-center border border-white/10">
+                  <p className="text-[9px] text-gray-400 uppercase tracking-wide">{s.label}</p>
+                  <p className="text-xs font-bold text-white mt-0.5">{s.value}</p>
+                </div>
+              ))}
+            </div>
+
             <input
               value={saveTitle}
               onChange={(e) => setSaveTitle(e.target.value)}
@@ -231,18 +290,33 @@ export default function Track() {
             />
             <div className="flex gap-3">
               <button
-                onClick={() => setShowSaveModal(false)}
+                onClick={() => { setShowSaveModal(false); stop("Discarded"); }}
                 className="flex-1 py-3 rounded-xl glass-light border border-white/10 text-gray-300 text-sm font-semibold hover:bg-white/10 transition-all"
               >
                 Discard
               </button>
               <button
                 onClick={handleSave}
-                className="flex-1 py-3 rounded-xl bg-gold text-black text-sm font-semibold hover:bg-gold-dark transition-all"
+                disabled={saving}
+                className="flex-1 py-3 rounded-xl bg-gold text-black text-sm font-semibold hover:bg-gold-dark transition-all disabled:opacity-60 flex items-center justify-center gap-2"
               >
-                Save
+                {saving ? (
+                  <><i className="bi bi-hourglass-split animate-spin"></i> Saving…</>
+                ) : (
+                  <><i className="bi bi-cloud-upload-fill"></i> Post to Feed</>
+                )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Geocoding overlay while fetching location */}
+      {geocoding && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="glass-dark rounded-2xl p-6 flex items-center gap-3 border border-white/10">
+            <i className="bi bi-geo-alt-fill text-gold text-xl animate-pulse"></i>
+            <p className="text-sm text-white font-medium">Getting location…</p>
           </div>
         </div>
       )}

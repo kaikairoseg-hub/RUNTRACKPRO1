@@ -23,12 +23,12 @@ const TABS = [
 ];
 
 const PAGES = {
-  dashboard: <Dashboard />,
-  track:     <Track />,
-  feed:      <Feed />,
-  challenges:<Challenges />,
-  leaderboard:<Leaderboard />,
-  profile:   <Profile />,
+  dashboard: (nav) => <Dashboard />,
+  track:     (nav) => <Track onNavigate={nav} />,
+  feed:      (nav) => <Feed />,
+  challenges:(nav) => <Challenges />,
+  leaderboard:(nav)=> <Leaderboard />,
+  profile:   (nav) => <Profile />,
 };
 
 function Shell() {
@@ -72,6 +72,8 @@ function Shell() {
 
     const handleSaved = (activity) => {
       showToast(`✅ Activity saved: ${activity.title}`);
+      // Auto-navigate to Feed after saving
+      handleTabChange("feed");
     };
 
     socket.on("activity:saved", handleSaved);
@@ -144,7 +146,7 @@ function Shell() {
             animation: `${transitionType} 0.4s ease-out forwards`
           }}
         >
-          {PAGES[tab]}
+          {PAGES[tab](handleTabChange)}
         </div>
       </main>
 

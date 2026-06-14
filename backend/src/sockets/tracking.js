@@ -66,7 +66,7 @@ export function initializeTracking(io) {
      * STOP ACTIVITY
      * Client emits when finishing tracking
      */
-    socket.on('activity:stop', async ({ title, distance, duration_seconds, calories, elevation_gain_m }) => {
+    socket.on('activity:stop', async ({ title, distance, duration_seconds, calories, elevation_gain_m, location_name }) => {
       const session = activeSessions.get(socket.id);
       
       if (!session) {
@@ -93,6 +93,7 @@ export function initializeTracking(io) {
             duration_seconds: parseInt(duration_seconds),
             calories: parseInt(calories) || 0,
             elevation_gain_m: elevation_gain_m ? parseFloat(elevation_gain_m) : 0,
+            location_name: location_name ?? null,
             route_geojson: routeGeoJSON
           })
           .select(`

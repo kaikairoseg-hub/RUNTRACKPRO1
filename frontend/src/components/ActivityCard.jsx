@@ -229,12 +229,18 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, currentUse
           )}
         </div>
 
-        {/* Title + weather */}
+        {/* Title + weather + location */}
         <div className="flex items-center flex-wrap gap-2 mt-3">
           <p className="font-bold text-base text-white flex items-center gap-2">
             <i className={`${TYPE_ICONS[activity.type]} text-lg`} style={{ color: typeColor }}></i>
             {activity.title}
           </p>
+          {activity.location_name && (
+            <span className="inline-flex items-center gap-1 text-xs text-gray-400 glass-light px-2 py-0.5 rounded-full border border-white/10">
+              <i className="bi-geo-alt-fill" style={{ color: typeColor }}></i>
+              {activity.location_name}
+            </span>
+          )}
           {activity.weather_condition && activity.temperature_celsius != null && (
             <span className="inline-flex items-center gap-1 text-xs text-gray-400 glass-light px-2 py-0.5 rounded-full border border-white/10">
               <i className={WEATHER_ICONS[activity.weather_condition] ?? "bi-thermometer-half"}></i>
