@@ -141,6 +141,22 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, cu
   const [commentsLoading, setCommentsLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    if (!showMenu) return;
+    const handler = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setShowMenu(false);
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler);
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
+  }, [showMenu]);
 
   useEffect(() => {
     if (!showComments || !activity.id) return;
@@ -208,7 +224,35 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, cu
             src={profile.avatar_url}
           />
           <div className="flex-1 min-w-0">
-            <p className="font-semibold text-sm text-white truncate">{name}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="font-semibold text-sm text-white truncate">{name}</p>
+              {/* 3-dot menu — other users only, sits right next to the name */}
+              {!isOwnActivity && (
+                <div className="relative flex-shrink-0" ref={menuRef}>
+                  <button
+                    onClick={() => setShowMenu((v) => !v)}
+                    className="w-6 h-6 rounded-md flex items-center justify-center text-gray-500 hover:text-gray-300 hover:bg-white/10 transition-all"
+                    title="More options"
+                  >
+                    <i className="bi-three-dots-vertical text-xs"></i>
+                  </button>
+                  {showMenu && (
+                    <div
+                      className="absolute left-0 top-7 z-50 glass-dark rounded-xl border border-white/10 overflow-hidden shadow-xl"
+                      style={{ minWidth: 160 }}
+                    >
+                      <button
+                        onClick={() => { onHide?.(activity.id); setShowMenu(false); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-300 hover:bg-white/10 transition-all text-left"
+                      >
+                        <i className="bi-eye-slash text-base text-gray-400"></i>
+                        Hide this post
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
             <p className="text-xs text-gray-400 flex items-center gap-1">
               <i className="bi-clock text-[10px]"></i>
               {new Date(activity.created_at).toLocaleDateString("en-US", {
@@ -218,7 +262,7 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, cu
             </p>
           </div>
           <Badge label={activity.type} color={typeColor} />
-          {/* Delete button — own activities only */}
+          {/* Delete button — own activities only, stays on the right */}
           {isOwnActivity && (
             <button
               onClick={() => setShowDeleteModal(true)}
@@ -226,16 +270,6 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, cu
               title="Delete activity"
             >
               <i className="bi-trash text-sm"></i>
-            </button>
-          )}
-          {/* Hide button — other users' activities only */}
-          {!isOwnActivity && (
-            <button
-              onClick={() => onHide?.(activity.id)}
-              className="w-8 h-8 rounded-lg glass-light border border-white/10 text-gray-400 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center ml-1"
-              title="Hide this activity"
-            >
-              <i className="bi-eye-slash text-sm"></i>
             </button>
           )}
         </div>
