@@ -155,9 +155,9 @@ export default function Profile() {
 
   return (
     <div>
-      {/* Hero banner - Glassmorphism - Clickable */}
+      {/* Hero banner - Gold glassmorphism */}
       <div 
-        className="glass rounded-2xl p-6 mb-4 relative cursor-pointer transition-all duration-300 hover:border-gold/40 border border-white/10"
+        className="glass-gold-card rounded-2xl p-6 mb-4 relative cursor-pointer transition-all duration-300 hover:border-gold/60"
         onClick={() => setShowProfileView(true)}
       >
         <div className="flex items-end gap-4">
@@ -224,7 +224,7 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Quick stats - Glassmorphism with Interactive */}
+      {/* Quick stats */}
       <div className="grid grid-cols-2 gap-2 mb-4">
         {[
           [stats.totalDistance ?? 0, "Total km"],
@@ -232,15 +232,15 @@ export default function Profile() {
           [profile?.current_streak ?? 0, "Day Streak"],
           ["—", "Friends"],
         ].map(([v, l]) => (
-          <div key={l} className="glass rounded-2xl p-3 text-center transition-all duration-300 hover:scale-105 hover:border-gold/30 active:scale-95 border border-white/10 flex flex-col justify-center" style={{ minHeight: '100px', maxHeight: '120px' }}>
+          <div key={l} className="glass-gold-card rounded-2xl p-3 text-center transition-all duration-300 hover:scale-105 active:scale-95 flex flex-col justify-center" style={{ minHeight: '100px', maxHeight: '120px' }}>
             <p className="text-xl font-bold text-white mb-1">{v}</p>
-            <p className="text-[10px] text-gray-400 uppercase tracking-wide leading-tight">{l}</p>
+            <p className="text-[10px] text-gold/80 uppercase tracking-wide leading-tight">{l}</p>
           </div>
         ))}
       </div>
 
       {/* ── Body Stats & BMI ──────────────────────────────── */}
-      <div className="glass rounded-2xl p-5 mb-4 border border-white/10">
+      <div className="glass-gold-card rounded-2xl p-5 mb-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-sm font-bold text-white flex items-center gap-2">
             <i className="bi bi-person-bounding-box text-gold"></i>
@@ -466,8 +466,8 @@ export default function Profile() {
         </div>
       )}
 
-      {/* Achievements - Glassmorphism */}
-      <div className="glass rounded-2xl p-5 mb-4">        <h3 className="text-sm font-bold text-white mb-4">Achievements</h3>
+      {/* Achievements - Gold glassmorphism */}
+      <div className="glass-gold-card rounded-2xl p-5 mb-4">        <h3 className="text-sm font-bold text-white mb-4">Achievements</h3>
         <div className="grid grid-cols-3 gap-2.5">
           {achievements.length === 0
             ? /* Placeholder tiles */ [
@@ -503,8 +503,8 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* Settings - Glassmorphism with Clickable Items */}
-      <div className="glass rounded-2xl p-5 mb-4">
+      {/* Settings - Gold glassmorphism */}
+      <div className="glass-gold-card rounded-2xl p-5 mb-4">
         <h3 className="text-sm font-bold text-white mb-4">Settings</h3>
         {[
           { key: "theme", label: "Theme", value: theme === "dark" ? "Dark Mode" : "Light Mode", icon: theme === "dark" ? "bi bi-moon-stars-fill" : "bi bi-sun-fill" },

@@ -212,7 +212,7 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, on
   };
 
   return (
-    <div className="glass rounded-2xl overflow-hidden mb-3 border border-white/10">
+    <div className="glass-gold-card rounded-2xl overflow-hidden mb-3">
 
       {/* ── Header ─────────────────────────────────── */}
       <div className="p-4 pb-3">
