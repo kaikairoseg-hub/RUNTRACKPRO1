@@ -217,3 +217,21 @@ html { scroll-behavior: smooth; }
 
 /* Leaflet fix: prevent controls overlapping bottom nav */
 .leaflet-bottom { bottom: 0 !important; }
+
+/* Leaflet map pane must stay below modals */
+.leaflet-pane,
+.leaflet-tile,
+.leaflet-marker-icon,
+.leaflet-marker-shadow,
+.leaflet-tile-container,
+.leaflet-map-pane svg,
+.leaflet-map-pane canvas,
+.leaflet-zoom-box,
+.leaflet-image-layer,
+.leaflet-layer {
+  z-index: 1 !important;
+}
+.leaflet-top,
+.leaflet-bottom {
+  z-index: 2 !important;
+}

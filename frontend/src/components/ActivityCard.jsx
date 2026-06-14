@@ -110,7 +110,7 @@ function RouteMap({ geojson, color }) {
   const bounds = points.map((p) => p); // leaflet accepts [[lat,lng]]
 
   return (
-    <div className="w-full overflow-hidden" style={{ height: 200, borderRadius: 0 }}>
+    <div className="w-full overflow-hidden" style={{ height: 200, borderRadius: 0, position: "relative", zIndex: 0 }}>
       <MapContainer
         bounds={bounds}
         boundsOptions={{ padding: [20, 20] }}
@@ -440,7 +440,8 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, on
       {/* ── Delete confirmation modal ───────────────── */}
       {showDeleteModal && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          style={{ zIndex: 99999 }}
           onClick={() => setShowDeleteModal(false)}
         >
           <div
