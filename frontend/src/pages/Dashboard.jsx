@@ -126,8 +126,8 @@ export default function Dashboard() {
         ].map((s) => (
           <div key={s.label} className="glass rounded-2xl p-3 text-center border border-white/10">
             <div className="w-8 h-8 rounded-lg mx-auto mb-1 flex items-center justify-center"
-              style={{ background: s.color }}>
-              <i className={`bi ${s.icon} text-sm text-white`}></i>
+              style={{ background: s.color, minWidth: 32, minHeight: 32 }}>
+              <span className={`bi ${s.icon}`} style={{ fontSize: 15, lineHeight: 1, color: '#fff' }}></span>
             </div>
             <p className="text-base font-black text-white leading-none">{s.value}</p>
             <p className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wide">{s.label}</p>
@@ -344,8 +344,8 @@ export default function Dashboard() {
               ].map(s => (
                 <div key={s.label} className="glass-light rounded-xl p-2.5 text-center border border-white/10">
                   <div className="w-7 h-7 rounded-lg mx-auto mb-1 flex items-center justify-center"
-                    style={{ background: s.color }}>
-                    <i className={`bi ${s.icon} text-xs text-white`}></i>
+                    style={{ background: s.color, minWidth: 28, minHeight: 28 }}>
+                    <span className={`bi ${s.icon}`} style={{ fontSize: 13, lineHeight: 1, color: '#fff' }}></span>
                   </div>
                   <p className="text-xs font-bold text-white leading-none">{s.value}</p>
                   <p className="text-[9px] text-gray-500 mt-0.5">{s.unit}</p>
@@ -385,9 +385,9 @@ export default function Dashboard() {
             { label: "Max Climb",     value: analytics?.personalRecords?.max_elevation_gain_m != null ? `${analytics.personalRecords.max_elevation_gain_m} m` : "—", icon: "bi-graph-up-arrow", color: "#D4AF37", sub: "elevation" },
           ].map(r => (
             <div key={r.label} className="glass-light rounded-xl p-3 flex items-start gap-2.5 border border-white/10">
-              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{ background: r.color }}>
-                <i className={`bi ${r.icon} text-sm text-white`}></i>
+              <div className="w-9 h-9 rounded-lg flex-shrink-0 mt-0.5 flex items-center justify-center text-white text-base font-bold"
+                style={{ background: r.color, minWidth: 36, minHeight: 36 }}>
+                <span className={`bi ${r.icon}`} style={{ fontSize: 16, lineHeight: 1, color: '#fff' }}></span>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-gray-400 truncate">{r.label}</p>
