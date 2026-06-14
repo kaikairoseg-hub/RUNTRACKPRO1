@@ -24,12 +24,12 @@ const TABS = [
 ];
 
 const PAGES = {
-  dashboard:   (nav, _sig) => <Dashboard />,
-  track:       (nav, _sig) => <Track onNavigate={nav} />,
-  feed:        (nav, sig)  => <Feed refreshSignal={sig} />,
-  challenges:  (nav, _sig) => <Challenges />,
-  leaderboard: (nav, _sig) => <Leaderboard />,
-  profile:     (nav, _sig) => <Profile />,
+  dashboard:   (nav, _sig, dSig) => <Dashboard refreshSignal={dSig} />,
+  track:       (nav, _sig, _dSig) => <Track onNavigate={nav} />,
+  feed:        (nav, sig, _dSig)  => <Feed refreshSignal={sig} />,
+  challenges:  (nav, _sig, _dSig) => <Challenges />,
+  leaderboard: (nav, _sig, _dSig) => <Leaderboard />,
+  profile:     (nav, _sig, _dSig) => <Profile />,
 };
 
 function Shell() {
@@ -41,6 +41,7 @@ function Shell() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [feedRefreshSignal, setFeedRefreshSignal] = useState(0);
+  const [dashRefreshSignal, setDashRefreshSignal] = useState(0);
 
   const showToast = (msg) => setToast(msg);
 
@@ -64,6 +65,10 @@ function Shell() {
     
     setPrevTab(tab);
     setTab(newTab);
+    // Refresh dashboard data whenever navigating to it
+    if (newTab === "dashboard") {
+      setDashRefreshSignal((n) => n + 1);
+    }
   };
 
   // Listen for socket-pushed notifications
@@ -78,6 +83,7 @@ function Shell() {
       // (delay lets the DB write complete before re-fetching)
       setTimeout(() => {
         setFeedRefreshSignal((n) => n + 1);
+        setDashRefreshSignal((n) => n + 1);
         handleTabChange("feed");
       }, 800);
     };
@@ -152,7 +158,7 @@ function Shell() {
             animation: `${transitionType} 0.4s ease-out forwards`
           }}
         >
-          {PAGES[tab](handleTabChange, feedRefreshSignal)}
+          {PAGES[tab](handleTabChange, feedRefreshSignal, dashRefreshSignal)}
         </div>
       </main>
 

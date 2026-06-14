@@ -35,7 +35,7 @@ function CustomTooltip({ active, payload, label, metric }) {
   );
 }
 
-export default function Dashboard() {
+export default function Dashboard({ refreshSignal = 0 }) {
   const { user } = useAuth();
   const [profile, setProfile] = useState(null);
   const [analytics, setAnalytics] = useState(null);
@@ -44,27 +44,37 @@ export default function Dashboard() {
   const [todayStepsData, setTodayStepsData] = useState({ steps: 0, activities: 0, breakdown: [] });
   const [chartTab, setChartTab] = useState("Daily");
   const [metricTab, setMetricTab] = useState("Distance");
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const timer = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    api.get("/api/users/me").then(setProfile).catch(() => {});
-  }, []);
+  const fetchAll = async () => {
+    setRefreshing(true);
+    try {
+      const [profileData, analyticsData, coachData, stepsData] = await Promise.all([
+        api.get("/api/users/me"),
+        api.get("/api/users/me/analytics"),
+        api.get("/api/users/me/coach"),
+        api.get("/api/users/me/today-steps"),
+      ]);
+      setProfile(profileData);
+      setAnalytics(analyticsData);
+      setCoachAdvice(coachData.advice);
+      setTodayStepsData(stepsData);
+    } catch {
+      // silent
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
+  // Fetch on mount and whenever refreshSignal changes
   useEffect(() => {
-    api.get("/api/users/me/analytics").then(setAnalytics).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    api.get("/api/users/me/coach").then((d) => setCoachAdvice(d.advice)).catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    api.get("/api/users/me/today-steps").then(setTodayStepsData).catch(() => {});
-  }, []);
+    fetchAll();
+  }, [refreshSignal]);
 
   const firstName = profile?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
   const stats = profile?.stats ?? {};
@@ -104,9 +114,19 @@ export default function Dashboard() {
     <div className="pb-4">
       {/* Greeting + Clock */}
       <div className="mb-4">
-        <h2 className="text-2xl font-extrabold text-white mb-1">
-          {greeting}, {firstName} 👋
-        </h2>
+        <div className="flex items-start justify-between">
+          <h2 className="text-2xl font-extrabold text-white mb-1">
+            {greeting}, {firstName} 👋
+          </h2>
+          <button
+            onClick={fetchAll}
+            disabled={refreshing}
+            className="p-2 rounded-lg glass-light border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            title="Refresh data"
+          >
+            <i className={`bi bi-arrow-clockwise text-base ${refreshing ? "animate-spin" : ""}`}></i>
+          </button>
+        </div>
         <div className="flex items-center gap-3 mt-1 flex-wrap">
           <p className="text-sm text-gray-400">{dateStr}</p>
           <span className="text-sm font-bold tracking-widest px-2.5 py-0.5 rounded-lg border border-gold/30"
