@@ -106,10 +106,10 @@ export default function Dashboard() {
       <div className="grid grid-cols-2 gap-3 mb-4">
         
         {/* Weekly Distance Card with Chart */}
-        <div className="glass-gold-card rounded-3xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer aspect-square flex flex-col">
+        <div className="glass rounded-3xl border border-gold/20 p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer aspect-square flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-xs text-gold/70 uppercase tracking-wide">Weekly</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Weekly</p>
               <p className="text-sm font-bold text-white">Distance</p>
             </div>
             <div className="w-10 h-10 rounded-xl glass-gold flex items-center justify-center">
@@ -133,10 +133,10 @@ export default function Dashboard() {
         </div>
 
         {/* Monthly Progress Card with Chart */}
-        <div className="glass-gold-card rounded-3xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer aspect-square flex flex-col">
+        <div className="glass rounded-3xl border border-gold/20 p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer aspect-square flex flex-col">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-xs text-gold/70 uppercase tracking-wide">Monthly</p>
+              <p className="text-xs text-gray-400 uppercase tracking-wide">Monthly</p>
               <p className="text-sm font-bold text-white">Progress</p>
             </div>
             <div className="w-10 h-10 rounded-xl glass-gold flex items-center justify-center">
@@ -160,9 +160,9 @@ export default function Dashboard() {
         </div>
 
         {/* Calories Card */}
-        <div className="glass-gold-card rounded-3xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer aspect-square flex flex-col justify-between">
+        <div className="glass rounded-3xl border border-gold/20 p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer aspect-square flex flex-col justify-between">
           <div>
-            <p className="text-xs text-gold/70 uppercase tracking-wide mb-1">Total</p>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Total</p>
             <p className="text-sm font-bold text-white">Calories</p>
           </div>
           <div className="flex-1 flex items-center justify-center">
@@ -181,9 +181,9 @@ export default function Dashboard() {
         </div>
 
         {/* Streak Card */}
-        <div className="glass-gold-card rounded-3xl p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer aspect-square flex flex-col justify-between">
+        <div className="glass rounded-3xl border border-gold/20 p-4 transition-all duration-300 hover:scale-105 active:scale-95 cursor-pointer aspect-square flex flex-col justify-between">
           <div>
-            <p className="text-xs text-gold/70 uppercase tracking-wide mb-1">Current</p>
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Current</p>
             <p className="text-sm font-bold text-white">Streak</p>
           </div>
           <div className="flex-1 flex items-center justify-center">
@@ -204,7 +204,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Summary Bar */}
-      <div className="glass-gold-card rounded-2xl p-4 mb-4">
+      <div className="glass rounded-2xl p-4 mb-4 border border-gold/20">
         <div className="grid grid-cols-3 gap-3 divide-x divide-white/10">
           <div className="text-center">
             <p className="text-xs text-gray-400 mb-1">Distance</p>
@@ -223,7 +223,7 @@ export default function Dashboard() {
 
       {/* ── Health Targets (shown only when body stats are set) ── */}
       {hasBodyStats ? (
-        <div className="glass-gold-card rounded-2xl p-4 mb-4">
+        <div className="glass rounded-2xl p-4 mb-4 border border-white/10">
           <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
             <i className="bi bi-heart-pulse-fill text-gold"></i>
             Today's Health Targets
@@ -322,7 +322,7 @@ export default function Dashboard() {
         </div>
       ) : (
         /* Prompt to set up body stats */
-        <div className="glass-gold-card rounded-2xl p-4 mb-4">
+        <div className="glass rounded-2xl p-4 mb-4 border border-gold/20 bg-gold/5">
           <div className="flex items-center gap-3">
             <i className="bi bi-person-bounding-box text-3xl text-gold"></i>
             <div className="flex-1">
@@ -334,7 +334,7 @@ export default function Dashboard() {
       )}
 
       {/* Personal records */}
-      <div className="glass-gold-card rounded-2xl p-4 mb-4">
+      <div className="glass rounded-2xl p-4 mb-4 border border-white/10">
         <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
           <i className="bi bi-trophy-fill text-gold"></i>
           Personal Records
@@ -422,7 +422,7 @@ export default function Dashboard() {
       </div>
 
       {/* AI Coach */}
-      <div className="glass-gold-card rounded-2xl p-4">
+      <div className="glass rounded-2xl p-4 border border-white/10">
         <h3 className="text-sm font-bold text-white mb-2 flex items-center gap-2">
           <i className="bi bi-robot text-gold"></i>
           AI Coach
