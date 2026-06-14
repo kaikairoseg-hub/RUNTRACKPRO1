@@ -10,27 +10,30 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Restore existing session on mount
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('❌ Session error:', error);
-      }
-      
+    // Restore existing session on mount — refresh if needed
+    supabase.auth.getSession().then(async ({ data: { session }, error }) => {
+      if (error) console.error('❌ Session error:', error);
+
+      // If session exists but token expires soon, refresh it now
       if (session) {
-        console.log('✅ Session found:', {
-          user: session.user?.email,
-          expiresAt: new Date(session.expires_at * 1000).toISOString(),
-          now: new Date().toISOString()
-        });
+        const expiresAt = session.expires_at * 1000;
+        if (expiresAt - Date.now() < 5 * 60_000) {
+          console.log('🔄 Token expiring soon — refreshing...');
+          const { data } = await supabase.auth.refreshSession();
+          if (data?.session) {
+            setSession(data.session);
+            setUser(data.session.user);
+            connectSocket(data.session.access_token);
+            setLoading(false);
+            return;
+          }
+        }
+        console.log('✅ Session valid until:', new Date(expiresAt).toISOString());
       }
-      
+
       setSession(session);
       setUser(session?.user ?? null);
-      
-      // Connect socket if we have a session
-      if (session?.access_token) {
-        connectSocket(session.access_token);
-      }
+      if (session?.access_token) connectSocket(session.access_token);
       setLoading(false);
     });
 
