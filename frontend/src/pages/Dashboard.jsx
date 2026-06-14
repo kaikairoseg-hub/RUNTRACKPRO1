@@ -293,23 +293,51 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Personal records - Compact */}      <div className="glass rounded-2xl p-4 mb-4 transition-all duration-300 hover:border-gold/30 border border-white/10">
+      {/* Personal records - Compact */}
+      <div className="glass rounded-2xl p-4 mb-4 transition-all duration-300 hover:border-gold/30 border border-white/10">
         <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
           <i className="bi bi-trophy-fill text-gold"></i>
           Personal Records
         </h3>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { label: "Fastest 5K", value: "—", icon: "bi bi-lightning-charge-fill", color: "text-yellow-400" },
-            { label: "Longest", value: `${stats.totalDistance ?? 0} km`, icon: "bi bi-rulers", color: "text-blue-400" },
-            { label: "Best Pace", value: "—", icon: "bi bi-speedometer2", color: "text-green-400" },
-            { label: "Max Climb", value: `${analytics?.max_elevation_gain_m ?? 0} m`, icon: "bi bi-graph-up-arrow", color: "text-purple-400" },
+            {
+              label: "Fastest 5K",
+              value: analytics?.personalRecords?.fastest_5k ?? "—",
+              icon: "bi bi-lightning-charge-fill",
+              color: "text-yellow-400",
+              sub: analytics?.personalRecords?.fastest_5k ? "5 km" : "No 5K yet",
+            },
+            {
+              label: "Longest Run",
+              value: analytics?.personalRecords?.longest_km ? `${analytics.personalRecords.longest_km} km` : "—",
+              icon: "bi bi-rulers",
+              color: "text-blue-400",
+              sub: "single activity",
+            },
+            {
+              label: "Best Pace",
+              value: analytics?.personalRecords?.best_pace ?? "—",
+              icon: "bi bi-speedometer2",
+              color: "text-green-400",
+              sub: "per km",
+            },
+            {
+              label: "Max Climb",
+              value: analytics?.personalRecords?.max_elevation_gain_m != null
+                ? `${analytics.personalRecords.max_elevation_gain_m} m`
+                : "—",
+              icon: "bi bi-graph-up-arrow",
+              color: "text-purple-400",
+              sub: "elevation gain",
+            },
           ].map((r) => (
-            <div key={r.label} className="glass-light rounded-xl p-2.5 flex items-center gap-2">
-              <i className={`${r.icon} ${r.color} text-base`}></i>
+            <div key={r.label} className="glass-light rounded-xl p-3 flex items-start gap-2 border border-white/10">
+              <i className={`${r.icon} ${r.color} text-lg flex-shrink-0 mt-0.5`}></i>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-gray-400 truncate">{r.label}</p>
-                <p className="text-xs font-bold text-white truncate">{r.value}</p>
+                <p className="text-sm font-bold text-white truncate">{r.value}</p>
+                <p className="text-[10px] text-gray-500">{r.sub}</p>
               </div>
             </div>
           ))}

@@ -65,7 +65,7 @@ async function reverseGeocode(lat, lng) {
 export default function Track({ onNavigate }) {
   const {
     tracking, points, distance, elapsed, metric,
-    formatTime, activityType, setActivityType, error, start, stop, userWeight,
+    formatTime, activityType, setActivityType, error, start, stop, userWeight, accuracy,
   } = useGPS();
 
   const [activeTab, setActiveTab] = useState("GPS Track");
@@ -187,12 +187,32 @@ export default function Track({ onNavigate }) {
         {/* LIVE badge overlay — rendered outside map to avoid z-index issues */}
       </div>
 
-      {/* Live badge */}
-      <div className="flex items-center gap-2 mb-4">
+      {/* Live badge + accuracy */}
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
         {tracking && (
           <span className="flex items-center gap-1.5 glass-gold text-gold text-xs font-bold px-3 py-1 rounded-full border border-gold/30">
             <span className="w-2 h-2 rounded-full bg-gold animate-pulse inline-block" />
             LIVE
+          </span>
+        )}
+        {/* GPS accuracy badge */}
+        {tracking && accuracy !== null && (
+          <span
+            className="text-xs font-semibold px-3 py-1 rounded-full border flex items-center gap-1"
+            style={{
+              background: accuracy <= 10 ? "rgba(16,185,129,0.15)" : accuracy <= 25 ? "rgba(212,175,55,0.15)" : "rgba(239,68,68,0.15)",
+              borderColor: accuracy <= 10 ? "rgba(16,185,129,0.4)" : accuracy <= 25 ? "rgba(212,175,55,0.4)" : "rgba(239,68,68,0.4)",
+              color: accuracy <= 10 ? "#10b981" : accuracy <= 25 ? "#D4AF37" : "#ef4444",
+            }}
+          >
+            <i className="bi bi-broadcast text-xs"></i>
+            ±{accuracy}m {accuracy <= 10 ? "Excellent" : accuracy <= 25 ? "Good" : "Weak"}
+          </span>
+        )}
+        {!tracking && !accuracy && (
+          <span className="text-xs text-gray-500 px-3 py-1 rounded-full glass-light border border-white/10 flex items-center gap-1">
+            <i className="bi bi-broadcast text-xs"></i>
+            GPS ready
           </span>
         )}
         {error && (

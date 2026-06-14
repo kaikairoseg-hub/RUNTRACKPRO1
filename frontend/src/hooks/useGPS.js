@@ -4,7 +4,10 @@ import { calcCalories } from "../lib/fitness";
 import { api } from "../lib/api";
 
 const EARTH_RADIUS_KM = 6371;
-const THROTTLE_MS = 3000;
+const THROTTLE_MS = 5000;       // Accept a new point every 5 seconds
+const MIN_DISTANCE_M = 5;       // Ignore movement under 5 metres (GPS jitter)
+const MAX_ACCURACY_M = 35;      // Reject points with accuracy worse than 35 m
+const MAX_JUMP_KM = 0.3;        // Reject single-step jumps over 300 m (teleport noise)
 
 function haversine([lat1, lng1], [lat2, lng2]) {
   const toRad = (d) => (d * Math.PI) / 180;
@@ -24,7 +27,8 @@ export function useGPS() {
   const [activityType, setActivityType] = useState("Running");
   const [error, setError] = useState(null);
   const [elevationGain, setElevationGain] = useState(0);
-  const [userWeight, setUserWeight] = useState(null); // kg, loaded from profile
+  const [accuracy, setAccuracy] = useState(null); // metres — shown in UI
+  const [userWeight, setUserWeight] = useState(null);
 
   // Load user weight for accurate calorie calculation
   useEffect(() => {
@@ -72,6 +76,7 @@ export function useGPS() {
     setElapsed(0);
     setError(null);
     setElevationGain(0);
+    setAccuracy(null);
     lastPointRef.current = null;
     lastAltitudeRef.current = null;
     lastAcceptedTimestampRef.current = 0;
@@ -82,39 +87,56 @@ export function useGPS() {
     // Start GPS watch
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
-        // Throttle: drop points that arrive within the 3-second window
         const now = Date.now();
-        if (now - lastAcceptedTimestampRef.current < THROTTLE_MS) return;
-        lastAcceptedTimestampRef.current = now;
 
         const { latitude: lat, longitude: lng, accuracy, altitude } = pos.coords;
+
+        // 1. Reject low-accuracy readings (GPS not locked yet)
+        if (accuracy > MAX_ACCURACY_M) return;
+
+        // 2. Throttle: drop points that arrive too soon
+        if (now - lastAcceptedTimestampRef.current < THROTTLE_MS) return;
+
         const newPoint = [lat, lng];
 
-        setPoints((prev) => {
-          if (prev.length > 0) {
-            const d = haversine(prev[prev.length - 1], newPoint);
-            // Filter out GPS noise: ignore jumps that seem unrealistic (500 m)
-            if (d < 0.5) {
-              setDistance((dist) => Math.round((dist + d) * 1000) / 1000);
-            }
-          }
-          return [...prev, newPoint];
-        });
+        // 3. Filter noise: check minimum meaningful movement
+        if (lastPointRef.current) {
+          const d = haversine(lastPointRef.current, newPoint);
+          const dMetres = d * 1000;
 
-        // Accumulate elevation gain from accepted points only
+          // Ignore jitter (under 5 m)
+          if (dMetres < MIN_DISTANCE_M) return;
+
+          // Reject teleport jumps (over 300 m in one step)
+          if (d > MAX_JUMP_KM) return;
+
+          // Valid point — accumulate distance
+          setDistance((dist) => Math.round((dist + d) * 10000) / 10000);
+        }
+
+        // 4. Accept the point
+        lastAcceptedTimestampRef.current = now;
+        lastPointRef.current = newPoint;
+        setAccuracy(Math.round(accuracy));
+        setPoints((prev) => [...prev, newPoint]);
+
+        // 5. Elevation gain
         if (altitude != null && lastAltitudeRef.current != null) {
           const delta = altitude - lastAltitudeRef.current;
-          if (delta > 0) {
+          if (delta > 0.5) { // ignore sub-0.5 m altitude noise
             setElevationGain((g) => Math.round((g + delta) * 10) / 10);
           }
         }
         if (altitude != null) lastAltitudeRef.current = altitude;
 
         socket?.emit("location:update", { lat, lng, accuracy, timestamp: now });
-        lastPointRef.current = newPoint;
       },
       (err) => setError(`GPS error: ${err.message}`),
-      { enableHighAccuracy: true, maximumAge: 2000, timeout: 10000 }
+      {
+        enableHighAccuracy: true,
+        maximumAge: 0,       // Always request a fresh position (no cache)
+        timeout: 15000,
+      }
     );
 
     // Timer
@@ -150,18 +172,8 @@ export function useGPS() {
   }, []);
 
   return {
-    tracking,
-    points,
-    distance,
-    elapsed,
-    metric,
-    formatTime,
-    activityType,
-    setActivityType,
-    error,
-    elevationGain,
-    userWeight,
-    start,
-    stop,
+    tracking, points, distance, elapsed, metric, formatTime,
+    activityType, setActivityType, error, elevationGain,
+    accuracy, userWeight, start, stop,
   };
 }

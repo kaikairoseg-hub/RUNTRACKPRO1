@@ -231,10 +231,75 @@ router.get('/me/analytics', authMiddleware, async (req, res) => {
       ...activities?.map(a => parseFloat(a.elevation_gain_m) || 0) || [0]
     );
 
+    // ── Personal Records ──────────────────────────────────────────────────
+    // Fetch all activities with full data for PR calculation
+    const { data: allActivities } = await supabase
+      .from('activities')
+      .select('distance, duration_seconds, type, elevation_gain_m')
+      .eq('user_id', userId);
+
+    // Longest single activity
+    const longestActivity = allActivities?.reduce((best, a) =>
+      parseFloat(a.distance) > parseFloat(best?.distance ?? 0) ? a : best, null);
+
+    // Best pace (min/km) from running activities with distance >= 1 km
+    const runningActivities = allActivities?.filter(a =>
+      a.type === 'Running' && parseFloat(a.distance) >= 1 && a.duration_seconds > 0
+    ) || [];
+
+    let bestPaceSecPerKm = null;
+    runningActivities.forEach(a => {
+      const secPerKm = a.duration_seconds / parseFloat(a.distance);
+      if (bestPaceSecPerKm === null || secPerKm < bestPaceSecPerKm) {
+        bestPaceSecPerKm = secPerKm;
+      }
+    });
+
+    // Fastest 5K — find running activities where distance >= 5 km
+    // Calculate the pace-equivalent time for exactly 5 km
+    const fiveKActivities = allActivities?.filter(a =>
+      a.type === 'Running' && parseFloat(a.distance) >= 5 && a.duration_seconds > 0
+    ) || [];
+
+    let fastest5kSeconds = null;
+    fiveKActivities.forEach(a => {
+      // Extrapolate 5K time from pace
+      const secPerKm = a.duration_seconds / parseFloat(a.distance);
+      const time5k = secPerKm * 5;
+      if (fastest5kSeconds === null || time5k < fastest5kSeconds) {
+        fastest5kSeconds = time5k;
+      }
+    });
+
+    // Format seconds → mm:ss or h:mm:ss
+    const formatPR = (secs) => {
+      if (!secs) return null;
+      const h = Math.floor(secs / 3600);
+      const m = Math.floor((secs % 3600) / 60);
+      const s = Math.round(secs % 60);
+      if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    };
+
+    const formatPace = (secPerKm) => {
+      if (!secPerKm) return null;
+      const m = Math.floor(secPerKm / 60);
+      const s = Math.round(secPerKm % 60);
+      return `${m}:${String(s).padStart(2,'0')}/km`;
+    };
+
+    const personalRecords = {
+      fastest_5k: fastest5kSeconds ? formatPR(fastest5kSeconds) : null,
+      longest_km: longestActivity ? parseFloat(parseFloat(longestActivity.distance).toFixed(2)) : null,
+      best_pace: bestPaceSecPerKm ? formatPace(bestPaceSecPerKm) : null,
+      max_elevation_gain_m: Math.round(max_elevation_gain_m),
+    };
+
     res.json({
       weekly: weeklyData,
       monthly: monthlyData,
-      max_elevation_gain_m: Math.round(max_elevation_gain_m)
+      max_elevation_gain_m: Math.round(max_elevation_gain_m),
+      personalRecords,
     });
   } catch (error) {
     console.error('Get analytics error:', error);
