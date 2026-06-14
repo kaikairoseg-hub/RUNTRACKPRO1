@@ -125,7 +125,10 @@ export default function Dashboard() {
           { label: "Streak",     value: `${profile?.current_streak ?? 0}d`,            icon: "bi-fire",                   color: "#D4AF37" },
         ].map((s) => (
           <div key={s.label} className="glass rounded-2xl p-3 text-center border border-white/10">
-            <i className={`bi ${s.icon} text-lg mb-1 block`} style={{ color: s.color }}></i>
+            <div className="w-8 h-8 rounded-lg mx-auto mb-1 flex items-center justify-center"
+              style={{ background: s.color }}>
+              <i className={`bi ${s.icon} text-sm text-white`}></i>
+            </div>
             <p className="text-base font-black text-white leading-none">{s.value}</p>
             <p className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wide">{s.label}</p>
           </div>
@@ -340,7 +343,10 @@ export default function Dashboard() {
                 { label: "Steps Goal", value: stepsGoal.toLocaleString(), unit: "steps", icon: "bi-person-walking", color: "#10b981" },
               ].map(s => (
                 <div key={s.label} className="glass-light rounded-xl p-2.5 text-center border border-white/10">
-                  <i className={`bi ${s.icon} text-base mb-1 block`} style={{ color: s.color }}></i>
+                  <div className="w-7 h-7 rounded-lg mx-auto mb-1 flex items-center justify-center"
+                    style={{ background: s.color }}>
+                    <i className={`bi ${s.icon} text-xs text-white`}></i>
+                  </div>
                   <p className="text-xs font-bold text-white leading-none">{s.value}</p>
                   <p className="text-[9px] text-gray-500 mt-0.5">{s.unit}</p>
                   <p className="text-[9px] text-gray-400 uppercase tracking-wide mt-0.5">{s.label}</p>
@@ -380,8 +386,8 @@ export default function Dashboard() {
           ].map(r => (
             <div key={r.label} className="glass-light rounded-xl p-3 flex items-start gap-2.5 border border-white/10">
               <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                style={{ background: `${r.color}22` }}>
-                <i className={`bi ${r.icon} text-base`} style={{ color: r.color }}></i>
+                style={{ background: r.color }}>
+                <i className={`bi ${r.icon} text-sm text-white`}></i>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-gray-400 truncate">{r.label}</p>
