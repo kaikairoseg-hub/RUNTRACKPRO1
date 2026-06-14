@@ -230,84 +230,166 @@ router.get('/me/achievements', authMiddleware, async (req, res) => {
 
 /**
  * GET /api/users/me/analytics
- * Get user's analytics data for charts
+ * Returns daily (last 7 days), weekly (last 4 weeks), monthly (last 6 months) data
+ * Plus activity type breakdown for demographics
  */
 router.get('/me/analytics', authMiddleware, async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Get activities for the past 6 months
+    // Get user height for step calculation
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('height_cm')
+      .eq('id', userId)
+      .single();
+    const heightCm = profileData?.height_cm ? parseFloat(profileData.height_cm) : null;
+
+    // Get all activities for the past 6 months
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
     const { data: activities } = await supabase
       .from('activities')
-      .select('distance, created_at, elevation_gain_m')
+      .select('distance, duration_seconds, calories, type, created_at, elevation_gain_m')
       .eq('user_id', userId)
       .gte('created_at', sixMonthsAgo.toISOString())
       .order('created_at', { ascending: true });
 
-    // Weekly data (last 7 days)
-    const weeklyData = [];
+    const allData = activities || [];
+
+    // ── Helper: steps per km by type ──────────────────────────────────────
+    const stepsPerKm = (type) => {
+      if (type === 'Cycling') return 0;
+      if (!heightCm) return { Walking: 1400, Running: 1200, Hiking: 1350 }[type] ?? 1300;
+      const h = heightCm / 100;
+      const stride = type === 'Running' ? h * 0.478 : type === 'Hiking' ? h * 0.400 : h * 0.413;
+      return Math.round(1000 / stride);
+    };
+
+    // ── DAILY: last 7 days ─────────────────────────────────────────────────
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dailyData = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
       date.setHours(0, 0, 0, 0);
-      
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
 
-      const dayActivities = activities?.filter(a => {
-        const actDate = new Date(a.created_at);
-        return actDate >= date && actDate < nextDate;
-      }) || [];
+      const dayActs = allData.filter(a => {
+        const d = new Date(a.created_at);
+        return d >= date && d < nextDate;
+      });
 
-      const distance_km = dayActivities.reduce((sum, a) => sum + parseFloat(a.distance), 0);
+      const distance_km = parseFloat(dayActs.reduce((s, a) => s + parseFloat(a.distance || 0), 0).toFixed(2));
+      const calories = dayActs.reduce((s, a) => s + parseInt(a.calories || 0), 0);
+      const steps = dayActs.reduce((s, a) => s + Math.round((parseFloat(a.distance) || 0) * stepsPerKm(a.type)), 0);
+      const duration_min = Math.round(dayActs.reduce((s, a) => s + parseInt(a.duration_seconds || 0), 0) / 60);
 
-      weeklyData.push({
+      dailyData.push({
         day: dayNames[date.getDay()],
-        distance_km: parseFloat(distance_km.toFixed(2))
+        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        distance_km,
+        calories,
+        steps,
+        duration_min,
+        count: dayActs.length,
       });
     }
 
-    // Monthly data (last 6 months)
+    // ── WEEKLY: last 4 weeks ───────────────────────────────────────────────
+    const weeklyData = [];
+    for (let i = 3; i >= 0; i--) {
+      const weekStart = new Date();
+      weekStart.setDate(weekStart.getDate() - (i + 1) * 7);
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekEnd.getDate() + 7);
+
+      const weekActs = allData.filter(a => {
+        const d = new Date(a.created_at);
+        return d >= weekStart && d < weekEnd;
+      });
+
+      const distance_km = parseFloat(weekActs.reduce((s, a) => s + parseFloat(a.distance || 0), 0).toFixed(2));
+      const calories = weekActs.reduce((s, a) => s + parseInt(a.calories || 0), 0);
+      const steps = weekActs.reduce((s, a) => s + Math.round((parseFloat(a.distance) || 0) * stepsPerKm(a.type)), 0);
+
+      weeklyData.push({
+        week: `W${4 - i}`,
+        label: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        distance_km,
+        calories,
+        steps,
+        count: weekActs.length,
+      });
+    }
+
+    // ── MONTHLY: last 6 months ─────────────────────────────────────────────
+    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const monthlyData = [];
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     for (let i = 5; i >= 0; i--) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
       const month = date.getMonth();
       const year = date.getFullYear();
 
-      const monthActivities = activities?.filter(a => {
-        const actDate = new Date(a.created_at);
-        return actDate.getMonth() === month && actDate.getFullYear() === year;
-      }) || [];
+      const monthActs = allData.filter(a => {
+        const d = new Date(a.created_at);
+        return d.getMonth() === month && d.getFullYear() === year;
+      });
 
-      const distance_km = monthActivities.reduce((sum, a) => sum + parseFloat(a.distance), 0);
+      const distance_km = parseFloat(monthActs.reduce((s, a) => s + parseFloat(a.distance || 0), 0).toFixed(2));
+      const calories = monthActs.reduce((s, a) => s + parseInt(a.calories || 0), 0);
+      const steps = monthActs.reduce((s, a) => s + Math.round((parseFloat(a.distance) || 0) * stepsPerKm(a.type)), 0);
 
       monthlyData.push({
         month: monthNames[month],
-        distance_km: parseFloat(distance_km.toFixed(2))
+        distance_km,
+        calories,
+        steps,
+        count: monthActs.length,
       });
     }
 
-    // ── Personal Records ──────────────────────────────────────────────────
+    // ── DEMOGRAPHICS: activity type breakdown ──────────────────────────────
+    const typeCounts = { Running: 0, Cycling: 0, Walking: 0, Hiking: 0 };
+    const typeDistance = { Running: 0, Cycling: 0, Walking: 0, Hiking: 0 };
+    const typeCalories = { Running: 0, Cycling: 0, Walking: 0, Hiking: 0 };
+
+    allData.forEach(a => {
+      const t = a.type;
+      if (typeCounts[t] !== undefined) {
+        typeCounts[t]++;
+        typeDistance[t] += parseFloat(a.distance || 0);
+        typeCalories[t] += parseInt(a.calories || 0);
+      }
+    });
+
+    const totalCount = allData.length || 1;
+    const demographics = Object.keys(typeCounts).map(type => ({
+      type,
+      count: typeCounts[type],
+      distance_km: parseFloat(typeDistance[type].toFixed(2)),
+      calories: typeCalories[type],
+      percent: Math.round((typeCounts[type] / totalCount) * 100),
+    })).filter(d => d.count > 0);
+
+    // ── PERSONAL RECORDS ──────────────────────────────────────────────────
+    // Fetch ALL activities (not just 6 months) for PRs
     const { data: allActivities } = await supabase
       .from('activities')
       .select('distance, duration_seconds, type, elevation_gain_m')
       .eq('user_id', userId);
 
-    // Longest single activity (any type)
-    const longestActivity = allActivities?.reduce((best, a) =>
+    const prData = allActivities || [];
+
+    const longestActivity = prData.reduce((best, a) =>
       parseFloat(a.distance) > parseFloat(best?.distance ?? 0) ? a : best, null);
 
-    // Helper: best pace for a given type (min/km, activities >= minKm)
     const bestPaceForType = (type, minKm = 0.5) => {
-      const acts = allActivities?.filter(a =>
-        a.type === type && parseFloat(a.distance) >= minKm && a.duration_seconds > 0
-      ) || [];
+      const acts = prData.filter(a => a.type === type && parseFloat(a.distance) >= minKm && a.duration_seconds > 0);
       let best = null;
       acts.forEach(a => {
         const secPerKm = a.duration_seconds / parseFloat(a.distance);
@@ -316,71 +398,55 @@ router.get('/me/analytics', authMiddleware, async (req, res) => {
       return best;
     };
 
-    // Fastest 5K (running only, distance >= 5 km)
-    const fiveKActivities = allActivities?.filter(a =>
-      a.type === 'Running' && parseFloat(a.distance) >= 5 && a.duration_seconds > 0
-    ) || [];
+    const fiveKActivities = prData.filter(a => a.type === 'Running' && parseFloat(a.distance) >= 5 && a.duration_seconds > 0);
     let fastest5kSec = null;
     fiveKActivities.forEach(a => {
       const t = (a.duration_seconds / parseFloat(a.distance)) * 5;
       if (fastest5kSec === null || t < fastest5kSec) fastest5kSec = t;
     });
 
-    // Best pace per type
-    const runPace     = bestPaceForType('Running', 1);
-    const cyclingPace = bestPaceForType('Cycling', 1);  // returned as sec/km → converted to km/h
+    const runPace = bestPaceForType('Running', 1);
+    const cyclingPace = bestPaceForType('Cycling', 1);
     const walkingPace = bestPaceForType('Walking', 0.5);
-    const hikingPace  = bestPaceForType('Hiking',  0.5);
+    const hikingPace = bestPaceForType('Hiking', 0.5);
 
-    // Longest per type
     const longestPerType = {};
     ['Running','Cycling','Walking','Hiking'].forEach(type => {
-      const acts = allActivities?.filter(a => a.type === type) || [];
-      const max = acts.reduce((best, a) =>
-        parseFloat(a.distance) > parseFloat(best?.distance ?? 0) ? a : best, null);
+      const acts = prData.filter(a => a.type === type);
+      const max = acts.reduce((best, a) => parseFloat(a.distance) > parseFloat(best?.distance ?? 0) ? a : best, null);
       longestPerType[type] = max ? parseFloat(parseFloat(max.distance).toFixed(2)) : null;
     });
 
-    // Max elevation (any type)
-    const maxElev = Math.max(...(allActivities?.map(a => parseFloat(a.elevation_gain_m) || 0) || [0]));
+    const maxElev = Math.max(...(prData.map(a => parseFloat(a.elevation_gain_m) || 0)), 0);
 
-    // Format helpers
     const fmtTime = (secs) => {
       if (!secs) return null;
-      const h = Math.floor(secs / 3600);
-      const m = Math.floor((secs % 3600) / 60);
-      const s = Math.round(secs % 60);
-      return h > 0
-        ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
-        : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = Math.round(secs % 60);
+      return h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     };
     const fmtPace = (secPerKm) => {
       if (!secPerKm) return null;
-      const m = Math.floor(secPerKm / 60);
-      const s = Math.round(secPerKm % 60);
+      const m = Math.floor(secPerKm / 60), s = Math.round(secPerKm % 60);
       return `${m}:${String(s).padStart(2,'0')}/km`;
     };
-    const fmtSpeed = (secPerKm) => {
-      if (!secPerKm) return null;
-      return `${(3600 / secPerKm).toFixed(1)} km/h`;
-    };
-
-    const personalRecords = {
-      fastest_5k:       fastest5kSec ? fmtTime(fastest5kSec) : null,
-      longest_km:       longestActivity ? parseFloat(parseFloat(longestActivity.distance).toFixed(2)) : null,
-      longest_per_type: longestPerType,
-      best_run_pace:    runPace     ? fmtPace(runPace)     : null,
-      best_cycle_speed: cyclingPace ? fmtSpeed(cyclingPace): null,
-      best_walk_pace:   walkingPace ? fmtPace(walkingPace) : null,
-      best_hike_pace:   hikingPace  ? fmtPace(hikingPace)  : null,
-      max_elevation_gain_m: Math.round(maxElev),
-    };
+    const fmtSpeed = (secPerKm) => secPerKm ? `${(3600 / secPerKm).toFixed(1)} km/h` : null;
 
     res.json({
+      daily: dailyData,
       weekly: weeklyData,
       monthly: monthlyData,
+      demographics,
       max_elevation_gain_m: Math.round(maxElev),
-      personalRecords,
+      personalRecords: {
+        fastest_5k: fastest5kSec ? fmtTime(fastest5kSec) : null,
+        longest_km: longestActivity ? parseFloat(parseFloat(longestActivity.distance).toFixed(2)) : null,
+        longest_per_type: longestPerType,
+        best_run_pace: runPace ? fmtPace(runPace) : null,
+        best_cycle_speed: cyclingPace ? fmtSpeed(cyclingPace) : null,
+        best_walk_pace: walkingPace ? fmtPace(walkingPace) : null,
+        best_hike_pace: hikingPace ? fmtPace(hikingPace) : null,
+        max_elevation_gain_m: Math.round(maxElev),
+      },
     });
   } catch (error) {
     console.error('Get analytics error:', error);
