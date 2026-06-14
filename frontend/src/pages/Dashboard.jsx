@@ -119,13 +119,13 @@ export default function Dashboard() {
       {/* ── Quick Stats Row ─────────────────────────────── */}
       <div className="grid grid-cols-4 gap-2 mb-4">
         {[
-          { label: "Activities", value: stats.totalActivities ?? 0, icon: "bi-lightning-charge-fill", color: "#D4AF37" },
-          { label: "km Total",   value: stats.totalDistance ?? 0,   icon: "bi-geo-alt-fill",           color: "#2196F3" },
-          { label: "kcal",       value: (stats.totalCalories ?? 0).toLocaleString(), icon: "bi-fire", color: "#FC4C02" },
-          { label: "Streak",     value: `${profile?.current_streak ?? 0}d`, icon: "bi-fire",          color: "#D4AF37" },
+          { label: "Activities", value: stats.totalActivities ?? 0,                    icon: "bi-lightning-charge-fill", color: "#D4AF37" },
+          { label: "km Total",   value: stats.totalDistance ?? 0,                      icon: "bi-geo-alt-fill",           color: "#2196F3" },
+          { label: "kcal",       value: (stats.totalCalories ?? 0).toLocaleString(),   icon: "bi-fire",                   color: "#FC4C02" },
+          { label: "Streak",     value: `${profile?.current_streak ?? 0}d`,            icon: "bi-fire",                   color: "#D4AF37" },
         ].map((s) => (
           <div key={s.label} className="glass rounded-2xl p-3 text-center border border-white/10">
-            <i className={`${s.icon} text-lg mb-1 block`} style={{ color: s.color }}></i>
+            <i className={`bi ${s.icon} text-lg mb-1 block`} style={{ color: s.color }}></i>
             <p className="text-base font-black text-white leading-none">{s.value}</p>
             <p className="text-[9px] text-gray-400 mt-0.5 uppercase tracking-wide">{s.label}</p>
           </div>
@@ -229,7 +229,7 @@ export default function Dashboard() {
               <div key={d.type} className="mb-3 last:mb-0">
                 <div className="flex items-center justify-between mb-1">
                   <div className="flex items-center gap-2">
-                    <i className={`${TYPE_ICONS[d.type]} text-sm`} style={{ color: TYPE_COLORS[d.type] }}></i>
+                    <i className={`bi ${TYPE_ICONS[d.type]} text-sm`} style={{ color: TYPE_COLORS[d.type] }}></i>
                     <span className="text-xs font-semibold text-white">{d.type}</span>
                     <span className="text-[10px] text-gray-500">{d.count} {d.count === 1 ? "activity" : "activities"}</span>
                   </div>
@@ -340,7 +340,7 @@ export default function Dashboard() {
                 { label: "Steps Goal", value: stepsGoal.toLocaleString(), unit: "steps", icon: "bi-person-walking", color: "#10b981" },
               ].map(s => (
                 <div key={s.label} className="glass-light rounded-xl p-2.5 text-center border border-white/10">
-                  <i className={`${s.icon} text-base mb-1 block`} style={{ color: s.color }}></i>
+                  <i className={`bi ${s.icon} text-base mb-1 block`} style={{ color: s.color }}></i>
                   <p className="text-xs font-bold text-white leading-none">{s.value}</p>
                   <p className="text-[9px] text-gray-500 mt-0.5">{s.unit}</p>
                   <p className="text-[9px] text-gray-400 uppercase tracking-wide mt-0.5">{s.label}</p>
@@ -369,19 +369,19 @@ export default function Dashboard() {
         </h3>
         <div className="grid grid-cols-2 gap-2">
           {[
-            { label: "Fastest 5K",    value: analytics?.personalRecords?.fastest_5k ?? "—",   icon: "bi bi-lightning-charge-fill", color: "#FC4C02", sub: "Running" },
-            { label: "Longest",       value: analytics?.personalRecords?.longest_km ? `${analytics.personalRecords.longest_km} km` : "—", icon: "bi bi-rulers", color: "#2196F3", sub: "any type" },
-            { label: "Best Run Pace", value: analytics?.personalRecords?.best_run_pace ?? "—", icon: "bi bi-person-running", color: "#FC4C02", sub: "Running" },
-            { label: "Best Speed",    value: analytics?.personalRecords?.best_cycle_speed ?? "—", icon: "bi bi-bicycle", color: "#2196F3", sub: "Cycling" },
-            { label: "Best Walk",     value: analytics?.personalRecords?.best_walk_pace ?? "—", icon: "bi bi-person-walking", color: "#7C3AED", sub: "Walking" },
-            { label: "Best Hike",     value: analytics?.personalRecords?.best_hike_pace ?? "—", icon: "bi bi-backpack", color: "#10B981", sub: "Hiking" },
-            { label: "Longest Run",   value: analytics?.personalRecords?.longest_per_type?.Running ? `${analytics.personalRecords.longest_per_type.Running} km` : "—", icon: "bi bi-geo-alt-fill", color: "#FC4C02", sub: "Running" },
-            { label: "Max Climb",     value: analytics?.personalRecords?.max_elevation_gain_m != null ? `${analytics.personalRecords.max_elevation_gain_m} m` : "—", icon: "bi bi-graph-up-arrow", color: "#D4AF37", sub: "elevation" },
+            { label: "Fastest 5K",    value: analytics?.personalRecords?.fastest_5k ?? "—",   icon: "bi-lightning-charge-fill", color: "#FC4C02", sub: "Running" },
+            { label: "Longest",       value: analytics?.personalRecords?.longest_km ? `${analytics.personalRecords.longest_km} km` : "—", icon: "bi-rulers", color: "#2196F3", sub: "any type" },
+            { label: "Best Run Pace", value: analytics?.personalRecords?.best_run_pace ?? "—", icon: "bi-person-running", color: "#FC4C02", sub: "Running" },
+            { label: "Best Speed",    value: analytics?.personalRecords?.best_cycle_speed ?? "—", icon: "bi-bicycle", color: "#2196F3", sub: "Cycling" },
+            { label: "Best Walk",     value: analytics?.personalRecords?.best_walk_pace ?? "—", icon: "bi-person-walking", color: "#7C3AED", sub: "Walking" },
+            { label: "Best Hike",     value: analytics?.personalRecords?.best_hike_pace ?? "—", icon: "bi-backpack", color: "#10B981", sub: "Hiking" },
+            { label: "Longest Run",   value: analytics?.personalRecords?.longest_per_type?.Running ? `${analytics.personalRecords.longest_per_type.Running} km` : "—", icon: "bi-geo-alt-fill", color: "#FC4C02", sub: "Running" },
+            { label: "Max Climb",     value: analytics?.personalRecords?.max_elevation_gain_m != null ? `${analytics.personalRecords.max_elevation_gain_m} m` : "—", icon: "bi-graph-up-arrow", color: "#D4AF37", sub: "elevation" },
           ].map(r => (
             <div key={r.label} className="glass-light rounded-xl p-3 flex items-start gap-2.5 border border-white/10">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+              <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
                 style={{ background: `${r.color}22` }}>
-                <i className={`${r.icon} text-sm`} style={{ color: r.color }}></i>
+                <i className={`bi ${r.icon} text-base`} style={{ color: r.color }}></i>
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-gray-400 truncate">{r.label}</p>
