@@ -1,28 +1,14 @@
 @echo off
-echo ========================================
-echo   RunTrack Pro - Stopping Servers
-echo ========================================
-echo.
+title RunTrack Pro - Stop Servers
 
-echo [1/2] Stopping Backend Server (Port 4000)...
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr :4000') do (
-    taskkill /F /PID %%a >nul 2>nul
-    if %ERRORLEVEL% EQU 0 (
-        echo Backend server stopped (PID: %%a)
-    )
-)
+:: Close named windows opened by start-servers.bat
+taskkill /FI "WINDOWTITLE eq RunTrack Backend" /T /F >nul 2>nul
+taskkill /FI "WINDOWTITLE eq RunTrack Frontend" /T /F >nul 2>nul
 
-echo [2/2] Stopping Frontend Server (Port 5173)...
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr :5173') do (
-    taskkill /F /PID %%a >nul 2>nul
-    if %ERRORLEVEL% EQU 0 (
-        echo Frontend server stopped (PID: %%a)
-    )
-)
+:: Also kill by port as fallback
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :4000 2^>nul') do taskkill /F /PID %%a >nul 2>nul
+for /f "tokens=5" %%a in ('netstat -ano ^| findstr :5173 2^>nul') do taskkill /F /PID %%a >nul 2>nul
 
-echo.
-echo ========================================
-echo   All servers stopped!
-echo ========================================
-echo.
-pause
+echo Servers stopped.
+timeout /t 2 /nobreak >nul
+exit
