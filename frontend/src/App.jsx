@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { Toast } from "./components/Toast";
 import { UpdateBanner } from "./components/UpdateBanner";
 import { OfflineBanner } from "./components/OfflineBanner";
+import { InstallBanner } from "./components/InstallBanner";
 import Auth from "./pages/Auth";
 import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
@@ -264,6 +265,7 @@ function Shell() {
 export default function App() {
   return (
     <AuthProvider>
+      <InstallBanner />
       <Shell />
     </AuthProvider>
   );
