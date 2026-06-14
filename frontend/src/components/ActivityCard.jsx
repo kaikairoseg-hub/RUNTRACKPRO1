@@ -133,7 +133,7 @@ function RouteMap({ geojson, color }) {
   );
 }
 
-export function ActivityCard({ activity, onLike, onComment, onDelete, currentUserId }) {
+export function ActivityCard({ activity, onLike, onComment, onDelete, onHide, currentUserId }) {
   const [showComments, setShowComments] = useState(false);
   const [comment, setComment] = useState("");
   const [posting, setPosting] = useState(false);
@@ -218,6 +218,7 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, currentUse
             </p>
           </div>
           <Badge label={activity.type} color={typeColor} />
+          {/* Delete button — own activities only */}
           {isOwnActivity && (
             <button
               onClick={() => setShowDeleteModal(true)}
@@ -225,6 +226,16 @@ export function ActivityCard({ activity, onLike, onComment, onDelete, currentUse
               title="Delete activity"
             >
               <i className="bi-trash text-sm"></i>
+            </button>
+          )}
+          {/* Hide button — other users' activities only */}
+          {!isOwnActivity && (
+            <button
+              onClick={() => onHide?.(activity.id)}
+              className="w-8 h-8 rounded-lg glass-light border border-white/10 text-gray-400 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center ml-1"
+              title="Hide this activity"
+            >
+              <i className="bi-eye-slash text-sm"></i>
             </button>
           )}
         </div>

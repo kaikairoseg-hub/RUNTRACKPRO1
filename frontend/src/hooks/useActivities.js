@@ -97,6 +97,21 @@ export function useActivities(filter = "everyone") {
     setActivities((prev) => prev.filter((a) => a.id !== activityId));
   };
 
+  // Hide an activity locally — persisted to localStorage so it survives refresh
+  const [hiddenIds, setHiddenIds] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("hidden_activities") ?? "[]")); }
+    catch { return new Set(); }
+  });
+
+  const hideActivity = (activityId) => {
+    setHiddenIds((prev) => {
+      const next = new Set(prev);
+      next.add(activityId);
+      localStorage.setItem("hidden_activities", JSON.stringify([...next]));
+      return next;
+    });
+  };
+
   return {
     activities,
     loading,
@@ -114,5 +129,7 @@ export function useActivities(filter = "everyone") {
     toggleLike,
     postComment,
     deleteActivity,
+    hiddenIds,
+    hideActivity,
   };
 }

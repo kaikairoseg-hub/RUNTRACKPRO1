@@ -22,10 +22,21 @@ export default function Feed() {
     toggleLike,
     postComment,
     deleteActivity,
+    hiddenIds,
+    hideActivity,
   } = useActivities(filter);
 
   // True only on the very first load (no activities yet and loading)
   const isInitialLoad = loading && activities.length === 0;
+
+  // Filter out hidden activities for display
+  const visibleActivities = activities.filter((a) => !hiddenIds.has(a.id));
+  const hiddenCount = activities.length - visibleActivities.length;
+
+  const clearHidden = () => {
+    localStorage.removeItem("hidden_activities");
+    window.location.reload();
+  };
 
   return (
     <div>
@@ -42,6 +53,22 @@ export default function Feed() {
         </select>
       </div>
 
+      {/* Hidden activities notice */}
+      {hiddenCount > 0 && (
+        <div className="glass-light border border-white/10 rounded-xl px-4 py-2.5 mb-3 flex items-center justify-between">
+          <p className="text-xs text-gray-400 flex items-center gap-1.5">
+            <i className="bi bi-eye-slash text-gray-400"></i>
+            {hiddenCount} {hiddenCount === 1 ? "activity" : "activities"} hidden
+          </p>
+          <button
+            onClick={clearHidden}
+            className="text-xs text-gold hover:underline font-medium"
+          >
+            Show all
+          </button>
+        </div>
+      )}
+
       {/* Initial load skeleton */}
       {isInitialLoad && (
         <div className="space-y-3">
@@ -51,23 +78,21 @@ export default function Feed() {
         </div>
       )}
 
-      {/* Error on first load (no activities loaded yet) */}
+      {/* Error on first load */}
       {error && activities.length === 0 && (
         <div className="glass-light border border-yellow-400/30 rounded-xl p-5 text-center">
           <i className="bi bi-exclamation-triangle text-3xl text-yellow-400 mb-3 block"></i>
           <p className="text-sm text-yellow-400 font-semibold mb-2">Backend Unavailable</p>
-          <p className="text-xs text-gray-400 mb-3">
-            {error}
-          </p>
+          <p className="text-xs text-gray-400 mb-3">{error}</p>
           <p className="text-xs text-gray-500">
-            The activity feed requires the backend server to be running. 
+            The activity feed requires the backend server to be running.
             For now, you can still track activities using the Track page.
           </p>
         </div>
       )}
 
       {/* Empty state */}
-      {!loading && !error && activities.length === 0 && (
+      {!loading && !error && visibleActivities.length === 0 && activities.length === 0 && (
         <div className="text-center py-16 text-gray-400">
           <i className="bi bi-person-running text-4xl mb-3 block"></i>
           <p className="font-medium text-white">No activities yet</p>
@@ -75,50 +100,32 @@ export default function Feed() {
         </div>
       )}
 
-      {/* Activity list */}
-      {activities.map((a) => (
+      {/* Activity list — hidden ones are filtered out */}
+      {visibleActivities.map((a) => (
         <ActivityCard
           key={a.id}
           activity={a}
           onLike={toggleLike}
           onComment={postComment}
           onDelete={deleteActivity}
+          onHide={hideActivity}
           currentUserId={user?.id}
         />
       ))}
 
-      {/* Pagination controls — only shown when there are already some activities */}
+      {/* Pagination controls */}
       {activities.length > 0 && (
         <div className="mt-4 flex flex-col items-center gap-3">
-          {/* Subsequent page loading spinner */}
           {loading && (
             <div className="flex items-center gap-2 text-sm text-gray-400">
-              <svg
-                className="animate-spin h-4 w-4 text-gold"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                />
-                <path
-                  className="opacity-75"
-                  fill="currentColor"
-                  d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-                />
+              <svg className="animate-spin h-4 w-4 text-gold" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
               </svg>
               Loading more…
             </div>
           )}
 
-          {/* Load more button */}
           {hasMore && !loading && !error && (
             <button
               onClick={loadMore}
@@ -128,12 +135,14 @@ export default function Feed() {
             </button>
           )}
 
-          {/* All caught up message */}
+          {/* All caught up — Bootstrap icon instead of emoji */}
           {!hasMore && !loading && (
-            <p className="text-sm text-gray-400 font-medium">All caught up 🎉</p>
+            <div className="flex items-center gap-2 text-sm text-gray-400 font-medium">
+              <i className="bi bi-check-circle-fill text-green-400"></i>
+              All caught up
+            </div>
           )}
 
-          {/* Retry button on error when activities are already present */}
           {error && activities.length > 0 && (
             <div className="flex flex-col items-center gap-2">
               <p className="text-sm text-red-400">Failed to load more activities.</p>
