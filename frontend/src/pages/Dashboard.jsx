@@ -293,7 +293,7 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Personal records - Compact */}
+      {/* Personal records */}
       <div className="glass rounded-2xl p-4 mb-4 transition-all duration-300 hover:border-gold/30 border border-white/10">
         <h3 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
           <i className="bi bi-trophy-fill text-gold"></i>
@@ -305,22 +305,54 @@ export default function Dashboard() {
               label: "Fastest 5K",
               value: analytics?.personalRecords?.fastest_5k ?? "—",
               icon: "bi bi-lightning-charge-fill",
-              color: "text-yellow-400",
-              sub: analytics?.personalRecords?.fastest_5k ? "5 km" : "No 5K yet",
+              color: "#FC4C02",
+              sub: "Running",
+            },
+            {
+              label: "Longest Activity",
+              value: analytics?.personalRecords?.longest_km
+                ? `${analytics.personalRecords.longest_km} km`
+                : "—",
+              icon: "bi bi-rulers",
+              color: "#2196F3",
+              sub: "any type",
+            },
+            {
+              label: "Best Run Pace",
+              value: analytics?.personalRecords?.best_run_pace ?? "—",
+              icon: "bi bi-person-running",
+              color: "#FC4C02",
+              sub: "Running",
+            },
+            {
+              label: "Best Cycle Speed",
+              value: analytics?.personalRecords?.best_cycle_speed ?? "—",
+              icon: "bi bi-bicycle",
+              color: "#2196F3",
+              sub: "Cycling",
+            },
+            {
+              label: "Best Walk Pace",
+              value: analytics?.personalRecords?.best_walk_pace ?? "—",
+              icon: "bi bi-person-walking",
+              color: "#7C3AED",
+              sub: "Walking",
+            },
+            {
+              label: "Best Hike Pace",
+              value: analytics?.personalRecords?.best_hike_pace ?? "—",
+              icon: "bi bi-backpack",
+              color: "#10B981",
+              sub: "Hiking",
             },
             {
               label: "Longest Run",
-              value: analytics?.personalRecords?.longest_km ? `${analytics.personalRecords.longest_km} km` : "—",
-              icon: "bi bi-rulers",
-              color: "text-blue-400",
-              sub: "single activity",
-            },
-            {
-              label: "Best Pace",
-              value: analytics?.personalRecords?.best_pace ?? "—",
-              icon: "bi bi-speedometer2",
-              color: "text-green-400",
-              sub: "per km",
+              value: analytics?.personalRecords?.longest_per_type?.Running
+                ? `${analytics.personalRecords.longest_per_type.Running} km`
+                : "—",
+              icon: "bi bi-geo-alt-fill",
+              color: "#FC4C02",
+              sub: "Running",
             },
             {
               label: "Max Climb",
@@ -328,12 +360,17 @@ export default function Dashboard() {
                 ? `${analytics.personalRecords.max_elevation_gain_m} m`
                 : "—",
               icon: "bi bi-graph-up-arrow",
-              color: "text-purple-400",
+              color: "#D4AF37",
               sub: "elevation gain",
             },
           ].map((r) => (
-            <div key={r.label} className="glass-light rounded-xl p-3 flex items-start gap-2 border border-white/10">
-              <i className={`${r.icon} ${r.color} text-lg flex-shrink-0 mt-0.5`}></i>
+            <div key={r.label} className="glass-light rounded-xl p-3 flex items-start gap-2.5 border border-white/10">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+                style={{ background: `${r.color}22` }}
+              >
+                <i className={`${r.icon} text-sm`} style={{ color: r.color }}></i>
+              </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-gray-400 truncate">{r.label}</p>
                 <p className="text-sm font-bold text-white truncate">{r.value}</p>

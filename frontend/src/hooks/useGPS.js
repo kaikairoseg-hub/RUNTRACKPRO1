@@ -4,10 +4,16 @@ import { calcCalories } from "../lib/fitness";
 import { api } from "../lib/api";
 
 const EARTH_RADIUS_KM = 6371;
-const THROTTLE_MS = 5000;       // Accept a new point every 5 seconds
-const MIN_DISTANCE_M = 5;       // Ignore movement under 5 metres (GPS jitter)
+const THROTTLE_MS = 3000;       // Accept a new point every 3 seconds
 const MAX_ACCURACY_M = 35;      // Reject points with accuracy worse than 35 m
-const MAX_JUMP_KM = 0.3;        // Reject single-step jumps over 300 m (teleport noise)
+
+// Per-activity tuning
+const ACTIVITY_CONFIG = {
+  Running: { minDistanceM: 3,   maxJumpKm: 0.15 },  // 3m jitter, 150m max jump
+  Walking: { minDistanceM: 2,   maxJumpKm: 0.08 },  // 2m jitter, 80m max jump
+  Hiking:  { minDistanceM: 2,   maxJumpKm: 0.10 },  // 2m jitter, 100m max jump
+  Cycling: { minDistanceM: 5,   maxJumpKm: 1.00 },  // 5m jitter, 1km max jump (fast)
+};
 
 function haversine([lat1, lng1], [lat2, lng2]) {
   const toRad = (d) => (d * Math.PI) / 180;
@@ -42,6 +48,10 @@ export function useGPS() {
   const lastPointRef = useRef(null);
   const lastAltitudeRef = useRef(null);
   const lastAcceptedTimestampRef = useRef(0);
+  const activityTypeRef = useRef(activityType); // kept in sync so closure reads latest type
+
+  // Keep ref in sync when activityType changes
+  useEffect(() => { activityTypeRef.current = activityType; }, [activityType]);
 
   const metric = useMemo(() => {
     if (elapsed < 10 || distance < 0.05) return { value: "—", label: "Pace" };
@@ -88,42 +98,42 @@ export function useGPS() {
     watchIdRef.current = navigator.geolocation.watchPosition(
       (pos) => {
         const now = Date.now();
-
         const { latitude: lat, longitude: lng, accuracy, altitude } = pos.coords;
 
         // 1. Reject low-accuracy readings (GPS not locked yet)
         if (accuracy > MAX_ACCURACY_M) return;
 
-        // 2. Throttle: drop points that arrive too soon
+        // 2. Throttle
         if (now - lastAcceptedTimestampRef.current < THROTTLE_MS) return;
 
         const newPoint = [lat, lng];
+        const cfg = ACTIVITY_CONFIG[activityTypeRef.current] ?? ACTIVITY_CONFIG.Running;
 
-        // 3. Filter noise: check minimum meaningful movement
+        // 3. Per-activity noise filters
         if (lastPointRef.current) {
           const d = haversine(lastPointRef.current, newPoint);
           const dMetres = d * 1000;
 
-          // Ignore jitter (under 5 m)
-          if (dMetres < MIN_DISTANCE_M) return;
+          // Ignore jitter below activity minimum
+          if (dMetres < cfg.minDistanceM) return;
 
-          // Reject teleport jumps (over 300 m in one step)
-          if (d > MAX_JUMP_KM) return;
+          // Reject impossible jumps for this activity
+          if (d > cfg.maxJumpKm) return;
 
-          // Valid point — accumulate distance
+          // Valid — accumulate distance
           setDistance((dist) => Math.round((dist + d) * 10000) / 10000);
         }
 
-        // 4. Accept the point
+        // 4. Accept point
         lastAcceptedTimestampRef.current = now;
         lastPointRef.current = newPoint;
         setAccuracy(Math.round(accuracy));
         setPoints((prev) => [...prev, newPoint]);
 
-        // 5. Elevation gain
+        // 5. Elevation gain (ignore sub-0.5 m noise)
         if (altitude != null && lastAltitudeRef.current != null) {
           const delta = altitude - lastAltitudeRef.current;
-          if (delta > 0.5) { // ignore sub-0.5 m altitude noise
+          if (delta > 0.5) {
             setElevationGain((g) => Math.round((g + delta) * 10) / 10);
           }
         }
@@ -134,7 +144,7 @@ export function useGPS() {
       (err) => setError(`GPS error: ${err.message}`),
       {
         enableHighAccuracy: true,
-        maximumAge: 0,       // Always request a fresh position (no cache)
+        maximumAge: 0,
         timeout: 15000,
       }
     );

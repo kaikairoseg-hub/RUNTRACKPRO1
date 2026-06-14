@@ -226,79 +226,93 @@ router.get('/me/analytics', authMiddleware, async (req, res) => {
       });
     }
 
-    // Calculate max elevation
-    const max_elevation_gain_m = Math.max(
-      ...activities?.map(a => parseFloat(a.elevation_gain_m) || 0) || [0]
-    );
-
     // ── Personal Records ──────────────────────────────────────────────────
-    // Fetch all activities with full data for PR calculation
     const { data: allActivities } = await supabase
       .from('activities')
       .select('distance, duration_seconds, type, elevation_gain_m')
       .eq('user_id', userId);
 
-    // Longest single activity
+    // Longest single activity (any type)
     const longestActivity = allActivities?.reduce((best, a) =>
       parseFloat(a.distance) > parseFloat(best?.distance ?? 0) ? a : best, null);
 
-    // Best pace (min/km) from running activities with distance >= 1 km
-    const runningActivities = allActivities?.filter(a =>
-      a.type === 'Running' && parseFloat(a.distance) >= 1 && a.duration_seconds > 0
-    ) || [];
+    // Helper: best pace for a given type (min/km, activities >= minKm)
+    const bestPaceForType = (type, minKm = 0.5) => {
+      const acts = allActivities?.filter(a =>
+        a.type === type && parseFloat(a.distance) >= minKm && a.duration_seconds > 0
+      ) || [];
+      let best = null;
+      acts.forEach(a => {
+        const secPerKm = a.duration_seconds / parseFloat(a.distance);
+        if (best === null || secPerKm < best) best = secPerKm;
+      });
+      return best;
+    };
 
-    let bestPaceSecPerKm = null;
-    runningActivities.forEach(a => {
-      const secPerKm = a.duration_seconds / parseFloat(a.distance);
-      if (bestPaceSecPerKm === null || secPerKm < bestPaceSecPerKm) {
-        bestPaceSecPerKm = secPerKm;
-      }
-    });
-
-    // Fastest 5K — find running activities where distance >= 5 km
-    // Calculate the pace-equivalent time for exactly 5 km
+    // Fastest 5K (running only, distance >= 5 km)
     const fiveKActivities = allActivities?.filter(a =>
       a.type === 'Running' && parseFloat(a.distance) >= 5 && a.duration_seconds > 0
     ) || [];
-
-    let fastest5kSeconds = null;
+    let fastest5kSec = null;
     fiveKActivities.forEach(a => {
-      // Extrapolate 5K time from pace
-      const secPerKm = a.duration_seconds / parseFloat(a.distance);
-      const time5k = secPerKm * 5;
-      if (fastest5kSeconds === null || time5k < fastest5kSeconds) {
-        fastest5kSeconds = time5k;
-      }
+      const t = (a.duration_seconds / parseFloat(a.distance)) * 5;
+      if (fastest5kSec === null || t < fastest5kSec) fastest5kSec = t;
     });
 
-    // Format seconds → mm:ss or h:mm:ss
-    const formatPR = (secs) => {
+    // Best pace per type
+    const runPace     = bestPaceForType('Running', 1);
+    const cyclingPace = bestPaceForType('Cycling', 1);  // returned as sec/km → converted to km/h
+    const walkingPace = bestPaceForType('Walking', 0.5);
+    const hikingPace  = bestPaceForType('Hiking',  0.5);
+
+    // Longest per type
+    const longestPerType = {};
+    ['Running','Cycling','Walking','Hiking'].forEach(type => {
+      const acts = allActivities?.filter(a => a.type === type) || [];
+      const max = acts.reduce((best, a) =>
+        parseFloat(a.distance) > parseFloat(best?.distance ?? 0) ? a : best, null);
+      longestPerType[type] = max ? parseFloat(parseFloat(max.distance).toFixed(2)) : null;
+    });
+
+    // Max elevation (any type)
+    const maxElev = Math.max(...(allActivities?.map(a => parseFloat(a.elevation_gain_m) || 0) || [0]));
+
+    // Format helpers
+    const fmtTime = (secs) => {
       if (!secs) return null;
       const h = Math.floor(secs / 3600);
       const m = Math.floor((secs % 3600) / 60);
       const s = Math.round(secs % 60);
-      if (h > 0) return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      return h > 0
+        ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+        : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
     };
-
-    const formatPace = (secPerKm) => {
+    const fmtPace = (secPerKm) => {
       if (!secPerKm) return null;
       const m = Math.floor(secPerKm / 60);
       const s = Math.round(secPerKm % 60);
       return `${m}:${String(s).padStart(2,'0')}/km`;
     };
+    const fmtSpeed = (secPerKm) => {
+      if (!secPerKm) return null;
+      return `${(3600 / secPerKm).toFixed(1)} km/h`;
+    };
 
     const personalRecords = {
-      fastest_5k: fastest5kSeconds ? formatPR(fastest5kSeconds) : null,
-      longest_km: longestActivity ? parseFloat(parseFloat(longestActivity.distance).toFixed(2)) : null,
-      best_pace: bestPaceSecPerKm ? formatPace(bestPaceSecPerKm) : null,
-      max_elevation_gain_m: Math.round(max_elevation_gain_m),
+      fastest_5k:       fastest5kSec ? fmtTime(fastest5kSec) : null,
+      longest_km:       longestActivity ? parseFloat(parseFloat(longestActivity.distance).toFixed(2)) : null,
+      longest_per_type: longestPerType,
+      best_run_pace:    runPace     ? fmtPace(runPace)     : null,
+      best_cycle_speed: cyclingPace ? fmtSpeed(cyclingPace): null,
+      best_walk_pace:   walkingPace ? fmtPace(walkingPace) : null,
+      best_hike_pace:   hikingPace  ? fmtPace(hikingPace)  : null,
+      max_elevation_gain_m: Math.round(maxElev),
     };
 
     res.json({
       weekly: weeklyData,
       monthly: monthlyData,
-      max_elevation_gain_m: Math.round(max_elevation_gain_m),
+      max_elevation_gain_m: Math.round(maxElev),
       personalRecords,
     });
   } catch (error) {
