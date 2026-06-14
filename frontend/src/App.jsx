@@ -24,12 +24,12 @@ const TABS = [
 ];
 
 const PAGES = {
-  dashboard: (nav) => <Dashboard />,
-  track:     (nav) => <Track onNavigate={nav} />,
-  feed:      (nav) => <Feed />,
-  challenges:(nav) => <Challenges />,
-  leaderboard:(nav)=> <Leaderboard />,
-  profile:   (nav) => <Profile />,
+  dashboard:   (nav, _sig) => <Dashboard />,
+  track:       (nav, _sig) => <Track onNavigate={nav} />,
+  feed:        (nav, sig)  => <Feed refreshSignal={sig} />,
+  challenges:  (nav, _sig) => <Challenges />,
+  leaderboard: (nav, _sig) => <Leaderboard />,
+  profile:     (nav, _sig) => <Profile />,
 };
 
 function Shell() {
@@ -40,6 +40,7 @@ function Shell() {
   const [toast, setToast] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [feedRefreshSignal, setFeedRefreshSignal] = useState(0);
 
   const showToast = (msg) => setToast(msg);
 
@@ -73,8 +74,12 @@ function Shell() {
 
     const handleSaved = (activity) => {
       showToast(`✅ Activity saved: ${activity.title}`);
-      // Auto-navigate to Feed after saving
-      handleTabChange("feed");
+      // Navigate to Feed and trigger a refresh after a short delay
+      // (delay lets the DB write complete before re-fetching)
+      setTimeout(() => {
+        setFeedRefreshSignal((n) => n + 1);
+        handleTabChange("feed");
+      }, 800);
     };
 
     socket.on("activity:saved", handleSaved);
@@ -147,7 +152,7 @@ function Shell() {
             animation: `${transitionType} 0.4s ease-out forwards`
           }}
         >
-          {PAGES[tab](handleTabChange)}
+          {PAGES[tab](handleTabChange, feedRefreshSignal)}
         </div>
       </main>
 

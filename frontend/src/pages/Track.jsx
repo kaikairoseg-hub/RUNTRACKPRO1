@@ -114,8 +114,7 @@ export default function Track({ onNavigate }) {
     await stop(saveTitle || `${activityType} ${new Date().toLocaleDateString()}`, locationName);
     setSaveTitle("");
     setSaving(false);
-    // Navigate to Feed — also handled by socket activity:saved in App.jsx
-    onNavigate?.("feed");
+    // App.jsx handles navigation to Feed via socket activity:saved event
   };
 
   return (

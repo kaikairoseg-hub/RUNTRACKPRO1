@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ActivityCard } from "../components/ActivityCard";
 import { useActivities } from "../hooks/useActivities";
 import { useAuth } from "../context/AuthContext";
@@ -9,7 +9,7 @@ const FILTERS = [
   { value: "mine", label: "My Activities" },
 ];
 
-export default function Feed() {
+export default function Feed({ refreshSignal = 0 }) {
   const { user } = useAuth();
   const [filter, setFilter] = useState("everyone");
   const {
@@ -25,10 +25,20 @@ export default function Feed() {
     hiddenIds,
     hideActivity,
     unhideActivity,
+    refresh,
   } = useActivities(filter);
 
   const isInitialLoad = loading && activities.length === 0;
   const hiddenCount = activities.filter((a) => hiddenIds.has(a.id) && a.user_id === user?.id).length;
+
+  // Refresh feed when a new activity is saved (signal increments)
+  const prevSignalRef = useRef(0);
+  useEffect(() => {
+    if (refreshSignal > 0 && refreshSignal !== prevSignalRef.current) {
+      prevSignalRef.current = refreshSignal;
+      refresh();
+    }
+  }, [refreshSignal]);
 
   return (
     <div>
