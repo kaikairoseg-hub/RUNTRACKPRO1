@@ -118,10 +118,58 @@ export function calcDailyStepsGoal(weightGoal, activityLevel) {
 }
 
 /**
- * Estimate daily steps from distance walked/run (1 km ≈ 1,312 steps)
+ * Estimate daily steps from distance walked/run
+ * Uses height-adjusted stride length when available.
+ *
+ * Steps per km by activity (based on research averages):
+ *   Walking: 1,400 steps/km  (avg stride 71 cm)
+ *   Running: 1,200 steps/km  (avg stride 83 cm — longer strides)
+ *   Hiking:  1,350 steps/km  (shorter strides on terrain)
+ *   Cycling: 0               (pedaling ≠ steps)
+ *
+ * With height (cm): stride ≈ height × 0.413 (walking) or × 0.478 (running)
+ *
+ * @param {number} km
+ * @param {string} activityType
+ * @param {number|null} heightCm
  */
-export function kmToSteps(km) {
-  return Math.round(km * 1312);
+export function kmToSteps(km, activityType = 'Walking', heightCm = null) {
+  if (!km || km <= 0) return 0;
+
+  // Cycling has no steps
+  if (activityType === 'Cycling') return 0;
+
+  let stepsPerKm;
+
+  if (heightCm) {
+    // Height-based stride length (more accurate)
+    const heightM = heightCm / 100;
+    const strideLengthM = activityType === 'Running'
+      ? heightM * 0.478   // running stride
+      : activityType === 'Hiking'
+        ? heightM * 0.400 // shorter on terrain
+        : heightM * 0.413; // walking stride
+
+    stepsPerKm = Math.round(1000 / strideLengthM);
+  } else {
+    // Fallback averages
+    stepsPerKm = {
+      Walking: 1400,
+      Running: 1200,
+      Hiking:  1350,
+      Cycling: 0,
+    }[activityType] ?? 1300;
+  }
+
+  return Math.round(km * stepsPerKm);
+}
+
+/**
+ * Calculate total steps from an array of activity objects {distance, type}
+ */
+export function calcTotalSteps(activities = [], heightCm = null) {
+  return activities.reduce((sum, a) =>
+    sum + kmToSteps(parseFloat(a.distance) || 0, a.type, heightCm), 0);
 }
 
 /**

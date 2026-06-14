@@ -136,6 +136,73 @@ router.patch('/me', authMiddleware, async (req, res) => {
 });
 
 /**
+ * GET /api/users/me/today-steps
+ * Get today's step count from actual activities (not estimates)
+ */
+router.get('/me/today-steps', authMiddleware, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get user's height for accurate stride calculation
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('height_cm')
+      .eq('id', userId)
+      .single();
+
+    const heightCm = profile?.height_cm ? parseFloat(profile.height_cm) : null;
+
+    // Today's date range (UTC)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const { data: activities } = await supabase
+      .from('activities')
+      .select('distance, type, duration_seconds')
+      .eq('user_id', userId)
+      .gte('created_at', today.toISOString())
+      .lt('created_at', tomorrow.toISOString());
+
+    if (!activities || activities.length === 0) {
+      return res.json({ steps: 0, activities: 0 });
+    }
+
+    // Calculate steps per activity using height-adjusted stride
+    const stepsPerKmByType = (type) => {
+      if (type === 'Cycling') return 0;
+      if (!heightCm) {
+        return { Walking: 1400, Running: 1200, Hiking: 1350 }[type] ?? 1300;
+      }
+      const heightM = heightCm / 100;
+      const stride = type === 'Running' ? heightM * 0.478
+                   : type === 'Hiking'  ? heightM * 0.400
+                   :                      heightM * 0.413;
+      return Math.round(1000 / stride);
+    };
+
+    const steps = activities.reduce((sum, a) => {
+      const km = parseFloat(a.distance) || 0;
+      return sum + Math.round(km * stepsPerKmByType(a.type));
+    }, 0);
+
+    res.json({
+      steps,
+      activities: activities.length,
+      breakdown: activities.map(a => ({
+        type: a.type,
+        distance: parseFloat(a.distance),
+        steps: Math.round((parseFloat(a.distance) || 0) * stepsPerKmByType(a.type)),
+      })),
+    });
+  } catch (error) {
+    console.error('Today steps error:', error);
+    res.status(500).json({ error: 'Failed to fetch today steps' });
+  }
+});
+
+/**
  * GET /api/users/me/achievements
  * Get user's earned achievements
  */

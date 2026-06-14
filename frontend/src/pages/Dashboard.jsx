@@ -6,7 +6,7 @@ import {
 import { StatCard } from "../components/StatCard";
 import { useAuth } from "../context/AuthContext";
 import { api } from "../lib/api";
-import { calcBMI, calcTDEE, calcDailyCalorieTarget, calcDailyStepsGoal, kmToSteps } from "../lib/fitness";
+import { calcBMI, calcTDEE, calcDailyCalorieTarget, calcDailyStepsGoal } from "../lib/fitness";
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -16,6 +16,7 @@ export default function Dashboard() {
   const [analytics, setAnalytics] = useState(null);
   const [coachAdvice, setCoachAdvice] = useState(null);
   const [now, setNow] = useState(new Date());
+  const [todayStepsData, setTodayStepsData] = useState({ steps: 0, activities: 0 });
 
   // Live clock — ticks every second
   useEffect(() => {
@@ -45,6 +46,13 @@ export default function Dashboard() {
       .catch(() => {});
   }, []);
 
+  // Fetch today's actual steps from real activities
+  useEffect(() => {
+    api.get("/api/users/me/today-steps")
+      .then((d) => setTodayStepsData(d))
+      .catch(() => {});
+  }, []);
+
   const firstName = profile?.full_name?.split(" ")[0] ?? user?.email?.split("@")[0] ?? "there";
   const stats = profile?.stats ?? {};
 
@@ -53,9 +61,8 @@ export default function Dashboard() {
   const tdee          = calcTDEE(profile?.weight_kg, profile?.height_cm, profile?.age, profile?.gender, profile?.activity_level);
   const calTarget     = calcDailyCalorieTarget(profile?.weight_kg, profile?.height_cm, profile?.age, profile?.gender, profile?.activity_level, profile?.weight_goal);
   const stepsGoal     = profile?.daily_steps_goal ?? calcDailyStepsGoal(profile?.weight_goal, profile?.activity_level);
-  // Today's estimated steps from activities logged today
-  const todayActivities = weeklyData?.[weeklyData.length - 1];
-  const todaySteps    = kmToSteps(todayActivities?.distance_km ?? 0);
+  // Today's actual steps from real activities (fetched from backend)
+  const todaySteps    = todayStepsData.steps;
   const stepsPercent  = Math.min(100, Math.round((todaySteps / stepsGoal) * 100));
   // Today's calories burned from tracked activities
   const todayCalBurned = stats.totalCalories ?? 0; // overall total for display
@@ -250,16 +257,49 @@ export default function Dashboard() {
                 <span className="text-xs text-gray-300 font-medium">Daily Steps</span>
               </div>
               <span className="text-xs text-gray-400">
-                <span className="font-bold text-white">{todaySteps.toLocaleString()}</span> / {stepsGoal.toLocaleString()}
+                <span className="font-bold text-white">{todaySteps.toLocaleString()}</span>
+                {" / "}{stepsGoal.toLocaleString()}
               </span>
             </div>
-            <div className="w-full bg-white/10 rounded-full h-2">
+            <div className="w-full bg-white/10 rounded-full h-2.5">
               <div
-                className="h-2 rounded-full transition-all duration-500"
-                style={{ width: `${stepsPercent}%`, background: "linear-gradient(to right, #10b981, #34d399)" }}
+                className="h-2.5 rounded-full transition-all duration-700"
+                style={{
+                  width: `${stepsPercent}%`,
+                  background: stepsPercent >= 100
+                    ? "linear-gradient(to right, #D4AF37, #f59e0b)"
+                    : "linear-gradient(to right, #10b981, #34d399)",
+                }}
               />
             </div>
-            <p className="text-[10px] text-gray-500 mt-1">{stepsPercent}% of daily goal</p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-[10px] text-gray-500">
+                {stepsPercent >= 100
+                  ? "🎉 Daily goal reached!"
+                  : `${stepsPercent}% of daily goal`}
+              </p>
+              {todayStepsData.activities > 0 && (
+                <p className="text-[10px] text-gray-500">
+                  from {todayStepsData.activities} {todayStepsData.activities === 1 ? "activity" : "activities"}
+                </p>
+              )}
+            </div>
+            {/* Breakdown by activity */}
+            {todayStepsData.breakdown?.length > 0 && (
+              <div className="mt-2 space-y-1">
+                {todayStepsData.breakdown.map((b, i) => (
+                  <div key={i} className="flex items-center justify-between text-[10px]">
+                    <span className="text-gray-500 flex items-center gap-1">
+                      <i className={`bi bi-${b.type === 'Running' ? 'person-running' : b.type === 'Cycling' ? 'bicycle' : b.type === 'Hiking' ? 'backpack' : 'person-walking'} text-xs`}></i>
+                      {b.type} · {b.distance.toFixed(2)} km
+                    </span>
+                    <span className="text-gray-400 font-semibold">
+                      {b.type === 'Cycling' ? '0 steps' : `+${b.steps.toLocaleString()} steps`}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Calorie burn vs target */}
