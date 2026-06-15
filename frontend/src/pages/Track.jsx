@@ -145,8 +145,8 @@ export default function Track({ onNavigate }) {
     } finally {
       setSaveTitle("");
       setSaving(false);
-      // Always navigate to Feed after attempting save
-      onNavigate?.("feed");
+      // Navigate to Feed — give DB 500ms to commit before Feed re-fetches
+      setTimeout(() => onNavigate?.("feed"), 500);
     }
   };
 

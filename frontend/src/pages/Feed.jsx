@@ -31,15 +31,11 @@ export default function Feed({ refreshSignal = 0 }) {
   const isInitialLoad = loading && activities.length === 0;
   const hiddenCount = activities.filter((a) => hiddenIds.has(a.id) && a.user_id === user?.id).length;
 
-  // Refresh feed whenever refreshSignal changes (skip initial 0)
-  const mountedRef = useRef(false);
+  // Refresh feed whenever refreshSignal is > 0
   useEffect(() => {
-    if (!mountedRef.current) {
-      mountedRef.current = true;
-      return; // skip on mount — filter-change effect already fetches
+    if (refreshSignal > 0) {
+      refresh();
     }
-    // Any subsequent signal change = re-fetch
-    refresh();
   }, [refreshSignal]);
 
   return (
@@ -47,15 +43,24 @@ export default function Feed({ refreshSignal = 0 }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-extrabold text-white">Activity Feed</h2>
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="text-sm glass-light border border-white/10 rounded-lg px-2.5 py-1.5 text-white bg-transparent outline-none focus:border-gold"
-        >
-          {FILTERS.map((f) => (
-            <option key={f.value} value={f.value} className="bg-black text-white">{f.label}</option>
-          ))}
-        </select>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => refresh()}
+            className="p-2 rounded-lg glass-light border border-white/10 text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            title="Refresh feed"
+          >
+            <i className="bi bi-arrow-clockwise text-base"></i>
+          </button>
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="text-sm glass-light border border-white/10 rounded-lg px-2.5 py-1.5 text-white bg-transparent outline-none focus:border-gold"
+          >
+            {FILTERS.map((f) => (
+              <option key={f.value} value={f.value} className="bg-black text-white">{f.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Hidden count notice */}
