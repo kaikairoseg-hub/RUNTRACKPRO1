@@ -115,24 +115,31 @@ export default function Track({ onNavigate }) {
     setShowSaveModal(false);
 
     const title = saveTitle || `${activityType} ${new Date().toLocaleDateString()}`;
-    const calories = calcCalories(distance, elapsed, activityType, userWeight);
 
-    // Stop GPS first so timer/watch are cleared
+    // Capture all values BEFORE stop() clears them
+    const savedDistance = distance;
+    const savedElapsed = elapsed;
+    const savedActivityType = activityType;
+    const savedElevation = elevationGain;
+    const savedPoints = [...points];
+    const calories = calcCalories(savedDistance, savedElapsed, savedActivityType, userWeight);
+
+    // Stop GPS (clears internal state — must happen after capturing values)
     stop(title);
 
-    // Save via REST API
+    // Save via REST API using captured values
     try {
       await api.post("/api/activities", {
         title,
-        type: activityType,
-        distance,
-        duration_seconds: elapsed,
+        type: savedActivityType,
+        distance: savedDistance,
+        duration_seconds: savedElapsed,
         calories,
-        elevation_gain_m: elevationGain,
+        elevation_gain_m: savedElevation,
         location_name: locationName ?? null,
-        route_geojson: points.length >= 2 ? {
+        route_geojson: savedPoints.length >= 2 ? {
           type: "LineString",
-          coordinates: points.map(([lat, lng]) => [lng, lat]),
+          coordinates: savedPoints.map(([lat, lng]) => [lng, lat]),
         } : null,
       });
 
