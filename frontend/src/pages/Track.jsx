@@ -115,10 +115,13 @@ export default function Track({ onNavigate }) {
     setShowSaveModal(false);
 
     const title = saveTitle || `${activityType} ${new Date().toLocaleDateString()}`;
+    const calories = calcCalories(distance, elapsed, activityType, userWeight);
 
-    // PRIMARY: Save directly via REST API (reliable, no socket needed)
+    // Stop GPS first so timer/watch are cleared
+    stop(title);
+
+    // Save via REST API
     try {
-      const calories = calcCalories(distance, elapsed, activityType, userWeight);
       await api.post("/api/activities", {
         title,
         type: activityType,
@@ -133,31 +136,17 @@ export default function Track({ onNavigate }) {
         } : null,
       });
 
-      setSavedMsg(`✅ Saved: ${title}`);
+      setSavedMsg(`✅ Saved!`);
       setTimeout(() => setSavedMsg(""), 4000);
-
-      // Navigate to Feed after successful save
-      onNavigate?.("feed");
     } catch (err) {
-      console.error("Save failed:", err);
-      // Fallback: try via socket
-      const socket = getSocket();
-      if (socket) {
-        socket.emit("activity:stop", {
-          title,
-          distance,
-          duration_seconds: elapsed,
-          calories: calcCalories(distance, elapsed, activityType, userWeight),
-          elevation_gain_m: elevationGain,
-          location_name: locationName ?? null,
-        });
-        onNavigate?.("feed");
-      }
+      console.error("REST save failed:", err);
+      setSavedMsg("❌ Save failed — check connection");
+      setTimeout(() => setSavedMsg(""), 5000);
     } finally {
-      // Stop GPS tracking regardless of save result
-      stop("done");
       setSaveTitle("");
       setSaving(false);
+      // Always navigate to Feed after attempting save
+      onNavigate?.("feed");
     }
   };
 

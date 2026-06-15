@@ -31,13 +31,15 @@ export default function Feed({ refreshSignal = 0 }) {
   const isInitialLoad = loading && activities.length === 0;
   const hiddenCount = activities.filter((a) => hiddenIds.has(a.id) && a.user_id === user?.id).length;
 
-  // Refresh feed when a new activity is saved (signal increments)
-  const prevSignalRef = useRef(0);
+  // Refresh feed whenever refreshSignal changes (skip initial 0)
+  const mountedRef = useRef(false);
   useEffect(() => {
-    if (refreshSignal > 0 && refreshSignal !== prevSignalRef.current) {
-      prevSignalRef.current = refreshSignal;
-      refresh();
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return; // skip on mount — filter-change effect already fetches
     }
+    // Any subsequent signal change = re-fetch
+    refresh();
   }, [refreshSignal]);
 
   return (

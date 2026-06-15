@@ -76,7 +76,7 @@ router.get('/', authMiddleware, async (req, res) => {
  */
 router.post('/', authMiddleware, async (req, res) => {
   try {
-    const { title, type, distance, duration_seconds, calories, route_geojson, elevation_gain_m, weather_condition, temperature_celsius, wind_speed_kmh } = req.body;
+    const { title, type, distance, duration_seconds, calories, route_geojson, elevation_gain_m, location_name, weather_condition, temperature_celsius, wind_speed_kmh } = req.body;
     const userId = req.user.id;
 
     // Validate required fields
@@ -95,6 +95,7 @@ router.post('/', authMiddleware, async (req, res) => {
         calories: parseInt(calories) || 0,
         route_geojson,
         elevation_gain_m: elevation_gain_m ? parseFloat(elevation_gain_m) : 0,
+        location_name: location_name ?? null,
         weather_condition,
         temperature_celsius: temperature_celsius ? parseFloat(temperature_celsius) : null,
         wind_speed_kmh: wind_speed_kmh ? parseFloat(wind_speed_kmh) : null,
