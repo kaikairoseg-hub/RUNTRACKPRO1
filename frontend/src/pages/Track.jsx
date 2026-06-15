@@ -129,7 +129,7 @@ export default function Track({ onNavigate }) {
 
     // Save via REST API using captured values
     try {
-      await api.post("/api/activities", {
+      const payload = {
         title,
         type: savedActivityType,
         distance: savedDistance,
@@ -141,14 +141,18 @@ export default function Track({ onNavigate }) {
           type: "LineString",
           coordinates: savedPoints.map(([lat, lng]) => [lng, lat]),
         } : null,
-      });
+      };
 
-      setSavedMsg(`✅ Saved!`);
+      console.log("💾 Saving activity:", payload);
+      const saved = await api.post("/api/activities", payload);
+      console.log("✅ Activity saved:", saved);
+
+      setSavedMsg(`✅ Saved: ${title}`);
       setTimeout(() => setSavedMsg(""), 4000);
     } catch (err) {
-      console.error("REST save failed:", err);
-      setSavedMsg("❌ Save failed — check connection");
-      setTimeout(() => setSavedMsg(""), 5000);
+      console.error("❌ REST save failed:", err);
+      setSavedMsg(`❌ Error: ${err.message}`);
+      setTimeout(() => setSavedMsg(""), 8000);
     } finally {
       setSaveTitle("");
       setSaving(false);
@@ -262,8 +266,8 @@ export default function Track({ onNavigate }) {
           </span>
         )}
         {savedMsg && (
-          <span className="text-xs text-green-400 glass-light px-3 py-1 rounded-full flex items-center gap-1 border border-green-400/30">
-            <i className="bi bi-check-circle-fill"></i>
+          <span className={`text-xs glass-light px-3 py-1 rounded-full flex items-center gap-1 border ${savedMsg.startsWith('❌') ? 'text-red-400 border-red-400/30' : 'text-green-400 border-green-400/30'}`}>
+            <i className={`bi ${savedMsg.startsWith('❌') ? 'bi-x-circle-fill' : 'bi-check-circle-fill'}`}></i>
             {savedMsg}
           </span>
         )}
