@@ -151,8 +151,8 @@ export default function Track({ onNavigate }) {
       setTimeout(() => setSavedMsg(""), 4000);
     } catch (err) {
       console.error("❌ REST save failed:", err);
-      setSavedMsg(`❌ Error: ${err.message}`);
-      setTimeout(() => setSavedMsg(""), 8000);
+      setSavedMsg(`❌ ${err.message}`);
+      setTimeout(() => setSavedMsg(""), 15000); // keep error visible longer
     } finally {
       setSaveTitle("");
       setSaving(false);
@@ -164,6 +164,27 @@ export default function Track({ onNavigate }) {
   return (
     <div>
       <h2 className="text-xl font-extrabold text-white mb-4">Track Activity</h2>
+
+      {/* Debug: test save button */}
+      <button
+        onClick={async () => {
+          try {
+            const r = await api.post("/api/activities", {
+              title: "Test Save " + new Date().toLocaleTimeString(),
+              type: "Running",
+              distance: 1.0,
+              duration_seconds: 300,
+              calories: 50,
+            });
+            alert("✅ SAVE WORKS! ID: " + r.id);
+          } catch(e) {
+            alert("❌ SAVE FAILED: " + e.message);
+          }
+        }}
+        className="w-full mb-3 py-2 rounded-xl text-xs text-white glass-light border border-yellow-400/30"
+      >
+        🔧 Test Save (tap to check if saving works)
+      </button>
 
       {/* Tab switcher - Glassmorphism */}
       <div className="flex gap-1 glass-light rounded-xl p-1 mb-4">
