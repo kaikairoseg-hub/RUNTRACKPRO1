@@ -65,9 +65,13 @@ function Shell() {
     
     setPrevTab(tab);
     setTab(newTab);
-    // Refresh dashboard data whenever navigating to it
+    // Refresh dashboard when navigating to it
     if (newTab === "dashboard") {
       setDashRefreshSignal((n) => n + 1);
+    }
+    // Refresh feed when navigating to it
+    if (newTab === "feed") {
+      setFeedRefreshSignal((n) => n + 1);
     }
   };
 

@@ -5,6 +5,7 @@ import { useGPS } from "../hooks/useGPS";
 import { getSocket } from "../lib/socket";
 import { ManualLogForm } from "../components/ManualLogForm";
 import { calcCalories } from "../lib/fitness";
+import { api } from "../lib/api";
 
 // Fix Leaflet default icon paths broken by bundlers
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -65,7 +66,8 @@ async function reverseGeocode(lat, lng) {
 export default function Track({ onNavigate }) {
   const {
     tracking, points, distance, elapsed, metric,
-    formatTime, activityType, setActivityType, error, start, stop, userWeight, accuracy,
+    formatTime, activityType, setActivityType, error, start, stop,
+    userWeight, accuracy, elevationGain,
   } = useGPS();
 
   const [activeTab, setActiveTab] = useState("GPS Track");
@@ -111,10 +113,52 @@ export default function Track({ onNavigate }) {
   const handleSave = async () => {
     setSaving(true);
     setShowSaveModal(false);
-    await stop(saveTitle || `${activityType} ${new Date().toLocaleDateString()}`, locationName);
-    setSaveTitle("");
-    setSaving(false);
-    // App.jsx handles navigation to Feed via socket activity:saved event
+
+    const title = saveTitle || `${activityType} ${new Date().toLocaleDateString()}`;
+
+    // PRIMARY: Save directly via REST API (reliable, no socket needed)
+    try {
+      const calories = calcCalories(distance, elapsed, activityType, userWeight);
+      await api.post("/api/activities", {
+        title,
+        type: activityType,
+        distance,
+        duration_seconds: elapsed,
+        calories,
+        elevation_gain_m: elevationGain,
+        location_name: locationName ?? null,
+        route_geojson: points.length >= 2 ? {
+          type: "LineString",
+          coordinates: points.map(([lat, lng]) => [lng, lat]),
+        } : null,
+      });
+
+      setSavedMsg(`✅ Saved: ${title}`);
+      setTimeout(() => setSavedMsg(""), 4000);
+
+      // Navigate to Feed after successful save
+      onNavigate?.("feed");
+    } catch (err) {
+      console.error("Save failed:", err);
+      // Fallback: try via socket
+      const socket = getSocket();
+      if (socket) {
+        socket.emit("activity:stop", {
+          title,
+          distance,
+          duration_seconds: elapsed,
+          calories: calcCalories(distance, elapsed, activityType, userWeight),
+          elevation_gain_m: elevationGain,
+          location_name: locationName ?? null,
+        });
+        onNavigate?.("feed");
+      }
+    } finally {
+      // Stop GPS tracking regardless of save result
+      stop("done");
+      setSaveTitle("");
+      setSaving(false);
+    }
   };
 
   return (
